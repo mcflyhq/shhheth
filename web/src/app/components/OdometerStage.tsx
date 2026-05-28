@@ -91,7 +91,7 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
   const displayValue = hovered ? hovered.formattedETH : formattedTotal;
   const sublabel = hovered
     ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
-    : "Has been told to shhh across privacy protocols";
+    : "Has been shielded across privacy protocols";
 
   return (
     <section
