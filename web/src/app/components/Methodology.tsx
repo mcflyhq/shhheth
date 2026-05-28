@@ -19,13 +19,10 @@ export default function Methodology() {
         <p>
           <strong>Only ETH is counted.</strong> Native ETH and WETH (which we
           count as ETH). Stablecoins and other tokens shielded through these
-          protocols are not in the number. On Railgun, native ETH is wrapped
-          to WETH before shielding — we count it as ETH for a clean read.
+          protocols are not in the number.
         </p>
         <p>
-          All data comes from public on-chain events indexed by Goldsky
-          subgraphs. No viewing keys. No attribution. No private data. We see
-          the proof. We don&apos;t tell.
+          All data comes from public on-chain events indexed by subgraphs.
         </p>
       </div>
     </section>

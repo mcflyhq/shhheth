@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "shhheth — every ETH that ever went private",
   description:
-    "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Cumulative, not TVL. Goes up only. We see the proof. We don't tell.",
+    "shhh. The quiet index for shielded ETH on Ethereum. Cumulative, not TVL. Goes up only.",
   openGraph: {
     title: "shhheth — every ETH that ever went private",
     description:

@@ -18,8 +18,6 @@ type Props = {
   live: DisplayProtocol[];
 };
 
-const CHAIN_LABEL = "Ethereum mainnet";
-
 export default function ProtocolList({ scaffold, live }: Props) {
   const liveById = new Map(live.map((p) => [p.id, p]));
   const sorted = scaffold.slice().sort((a, b) => {
@@ -32,7 +30,11 @@ export default function ProtocolList({ scaffold, live }: Props) {
 
   return (
     <section className="protocols" aria-label="Breakdown by protocol">
-      <h2 className="section-heading">By protocol</h2>
+      <h2 className="section-heading">
+        <span>By protocol</span>
+        <span className="section-heading-sep" aria-hidden="true">·</span>
+        <span>Ethereum mainnet</span>
+      </h2>
       <ul ref={ref} onPointerMove={onPointerMove} className="protocol-grid">
         {sorted.map((row) => {
           const data = liveById.get(row.id);
@@ -50,7 +52,6 @@ export default function ProtocolList({ scaffold, live }: Props) {
               <span className="spotlight-pattern" aria-hidden="true" />
               <div className="protocol-card-head">
                 <span className="protocol-card-name">{row.name}</span>
-                <span className="protocol-card-chain">{CHAIN_LABEL}</span>
               </div>
               <div className="protocol-card-data">
                 {data ? (

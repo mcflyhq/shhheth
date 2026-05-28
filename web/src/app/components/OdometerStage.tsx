@@ -1,21 +1,8 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import BraunDigits from "./BraunDigits";
-import SiteHeader from "./SiteHeader";
 import type { DisplayProtocol } from "@/lib/subgraph";
-
-const DOT_RADIUS = 40;
-const DOT_GAP = 28;        // viewBox units between the end of "shhh" and the dot
-const DOT_CY = 148;        // vertical center of the dot in viewBox space
 
 type Props = {
   formattedTotal: string;
@@ -24,58 +11,17 @@ type Props = {
   children?: React.ReactNode;
 };
 
+/* 3D emoji tracking — clamp distance + max-rotation feel. The emoji's face
+ * turns toward the cursor like a head tracking it across a room. */
+const MAX_TILT_DEG = 28;
+const TILT_DISTANCE_PX = 420;
+
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [dotX, setDotX] = useState(560);
-  const [emojiAngle, setEmojiAngle] = useState(0);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
-  const shhhTextRef = useRef<SVGTextElement | null>(null);
-  const dotRef = useRef<SVGCircleElement | null>(null);
-
-  /* Snap the dot to just after the rendered "shhh" — measure the SVG text's
-   * bbox after fonts settle so DM Sans's actual width drives the layout,
-   * not a hand-tuned constant. */
-  useLayoutEffect(() => {
-    const measure = () => {
-      if (!shhhTextRef.current) return;
-      const bbox = shhhTextRef.current.getBBox();
-      setDotX(bbox.x + bbox.width + DOT_GAP);
-    };
-    measure();
-    if (typeof document !== "undefined" && document.fonts?.ready) {
-      document.fonts.ready.then(measure).catch(() => {});
-    }
-    window.addEventListener("resize", measure, { passive: true });
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
-  /* Track the page cursor and rotate the 🤫 so its face points at it.
-   * rAF-throttled so we don't thrash on rapid pointer moves. */
-  useEffect(() => {
-    let raf = 0;
-    const handleMove = (event: globalThis.PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const circle = dotRef.current;
-        if (!circle) return;
-        const rect = circle.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = event.clientX - cx;
-        const dy = event.clientY - cy;
-        // atan2 returns 0° east, +90° south (screen coords). Add 90° so the
-        // emoji's "up" is what aligns with the cursor direction.
-        const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-        setEmojiAngle(deg);
-      });
-    };
-    window.addEventListener("pointermove", handleMove, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", handleMove);
-    };
-  }, []);
+  const dotRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -112,6 +58,38 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
     target.style.setProperty("--lens-y", `${event.clientY - stageRect.top}px`);
   }, []);
 
+  /* Track cursor globally — calculate yaw + pitch from the dot's center,
+   * clamp, and apply as a 3D rotation on the emoji.  rAF-throttled. */
+  useEffect(() => {
+    let raf = 0;
+    const handleMove = (event: globalThis.PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const dot = dotRef.current;
+        if (!dot) return;
+        const rect = dot.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = event.clientX - cx;
+        const dy = event.clientY - cy;
+        const norm = (value: number) =>
+          Math.max(-1, Math.min(1, value / TILT_DISTANCE_PX));
+        // rotateY: positive = right edge goes back ⇒ "looking left".
+        // We want the face to look toward the cursor, so flip dx.
+        const rotateY = -norm(dx) * MAX_TILT_DEG;
+        // rotateX: positive = top goes back ⇒ "looking up".
+        // Cursor below (positive dy) should make it look down ⇒ flip dy.
+        const rotateX = -norm(dy) * MAX_TILT_DEG;
+        setTilt({ x: rotateX, y: rotateY });
+      });
+    };
+    window.addEventListener("pointermove", handleMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", handleMove);
+    };
+  }, []);
+
   const hovered = useMemo(
     () => (hoveredId ? protocols.find((p) => p.id === hoveredId) ?? null : null),
     [hoveredId, protocols],
@@ -130,56 +108,31 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
     >
       <div className="ambient-noise" aria-hidden="true" />
       <div className="page-pattern" aria-hidden="true" />
-      <SiteHeader />
 
       <div className="page-mast">
         <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
-          <svg
-            className="hero-shhh"
-            viewBox={`0 0 ${Math.max(760, dotX + DOT_RADIUS + 40)} 220`}
-            preserveAspectRatio="xMidYMid meet"
-            role="img"
-            aria-hidden="true"
-          >
-            <text
-              ref={shhhTextRef}
-              x="40"
-              y="58%"
-              textAnchor="start"
-              dominantBaseline="middle"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              className="hero-shhh-text"
-            >
-              shhh
-            </text>
-            <circle
-              ref={dotRef}
-              cx={dotX}
-              cy={DOT_CY}
-              r={DOT_RADIUS}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <text
-              x={dotX}
-              y={DOT_CY}
-              textAnchor="middle"
-              dominantBaseline="central"
+          <span className="hero-shhh-letters" aria-hidden="true">shhh</span>
+          <span ref={dotRef} className="hero-shhh-dot" aria-hidden="true">
+            <svg className="hero-shhh-dot-ring" viewBox="0 0 100 100" aria-hidden="true">
+              <circle
+                cx="50"
+                cy="50"
+                r="46"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="6"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+            <span
               className="hero-shhh-emoji"
               style={{
-                transformBox: "fill-box",
-                transformOrigin: "center",
-                transform: `rotate(${emojiAngle}deg)`,
+                transform: `perspective(280px) rotateY(${tilt.y}deg) rotateX(${tilt.x}deg)`,
               }}
             >
               🤫
-            </text>
-          </svg>
+            </span>
+          </span>
         </h1>
         <p className="hero-subtitle">The quiet index for shielded ETH.</p>
       </div>
@@ -190,15 +143,16 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
         <div className="screen-content">
           <div className="screen-digits">
             <BraunDigits value={displayValue} />
-            <p className="screen-sublabel">
-              <span className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`} aria-hidden="true" />
-              {sublabel}
-            </p>
+            <p className="screen-sublabel">{sublabel}</p>
           </div>
 
           {protocols.length > 0 && (
             <div className="breakdown">
               <div className="breakdown-heading">
+                <span
+                  className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`}
+                  aria-hidden="true"
+                />
                 <span>Live aggregate</span>
                 <span className="breakdown-heading-sep" aria-hidden="true">·</span>
                 <span>updated every minute</span>
