@@ -165,9 +165,7 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
       <div className="below-fold">
         {children}
         <footer className="site-footer">
-          <span>built for people who prefer silence</span>
-          <span className="site-footer-sep" aria-hidden="true">·</span>
-          <span>we see the proof. we don&apos;t tell.</span>
+          <span>built for people who prefer privacy &amp; silence</span>
         </footer>
       </div>
     </section>
