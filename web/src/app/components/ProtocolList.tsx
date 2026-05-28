@@ -1,39 +1,76 @@
-import type { ProtocolConfig, ProtocolResult } from "@/lib/protocols";
-import { formatETH } from "@/lib/subgraph";
+"use client";
 
-type Props = {
-  scaffold: ProtocolConfig[];
-  live: ProtocolResult[];
+import type { ProtocolStatus } from "@/lib/protocols";
+import { formatETH, type DisplayProtocol } from "@/lib/subgraph";
+import { useSpotlight } from "./useSpotlight";
+
+/** Server-safe subset of ProtocolConfig — strips the adapter function so the
+ *  data can cross the server/client boundary. */
+export type ProtocolListItem = {
+  id: string;
+  name: string;
+  status: ProtocolStatus;
+  color: string;
 };
 
+type Props = {
+  scaffold: ProtocolListItem[];
+  live: DisplayProtocol[];
+};
+
+const CHAIN_LABEL = "Ethereum mainnet";
+
 export default function ProtocolList({ scaffold, live }: Props) {
-  const byId = new Map(live.map((p) => [p.id, p]));
+  const liveById = new Map(live.map((p) => [p.id, p]));
+  const sorted = scaffold.slice().sort((a, b) => {
+    const ap = liveById.get(a.id)?.percentage ?? -1;
+    const bp = liveById.get(b.id)?.percentage ?? -1;
+    return bp - ap;
+  });
+
+  const { ref, onPointerMove } = useSpotlight<HTMLUListElement>();
 
   return (
-    <section className="protocol-list" aria-label="Protocols">
-      <h2 className="protocol-list-heading">tracked across</h2>
-      <ul>
-        {scaffold.map((row) => {
-          const snap = byId.get(row.id);
-          const eth = snap ? formatETH(snap.totalETH, 1) : null;
+    <section className="protocols" aria-label="Breakdown by protocol">
+      <h2 className="section-heading">By protocol</h2>
+      <ul ref={ref} onPointerMove={onPointerMove} className="protocol-grid">
+        {sorted.map((row) => {
+          const data = liveById.get(row.id);
+          const amount = data ? formatETH(BigInt(data.totalWei), 1) : null;
+          const pct = data ? `${data.percentage.toFixed(1)}%` : null;
+          const statusText = row.status === "soon" ? "indexing soon" : row.status;
           return (
-            <li key={row.id} className={`protocol-row protocol-row-${row.status}`}>
-              <span className="protocol-name">{row.name}</span>
-              <span className="protocol-value">
-                {eth ? `${eth} ETH` : row.status === "soon" ? "soon" : "—"}
-              </span>
-              <span className="protocol-status">{row.status}</span>
+            <li
+              key={row.id}
+              data-spotlight
+              className={`protocol-card protocol-card-${row.status}`}
+              style={{ ["--seg-color" as string]: row.color }}
+            >
+              <span className="spotlight-glow" aria-hidden="true" />
+              <span className="spotlight-pattern" aria-hidden="true" />
+              <div className="protocol-card-head">
+                <span className="protocol-card-name">{row.name}</span>
+                <span className="protocol-card-chain">{CHAIN_LABEL}</span>
+              </div>
+              <div className="protocol-card-data">
+                {data ? (
+                  <>
+                    <span className="protocol-card-pct">{pct}</span>
+                    <span className="protocol-card-amount">{amount}</span>
+                    <span className="protocol-card-amount-label">ETH shielded · cumulative</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="protocol-card-pct protocol-card-pct-quiet">{statusText}</span>
+                    <span className="protocol-card-amount protocol-card-amount-quiet">—</span>
+                    <span className="protocol-card-amount-label">catching up</span>
+                  </>
+                )}
+              </div>
             </li>
           );
         })}
       </ul>
-      <p className="methodology">
-        <span className="methodology-strong">ETH only.</span> Native ETH and
-        WETH (counted as ETH). Nothing else — no USDC, no USDT, no DAI, no
-        wrapped tokens, no anything-else that may also be shielded in these
-        protocols. Every ETH deposit counts; withdrawals don&apos;t subtract.
-        Lifetime total, not TVL. We see the proof. We don&apos;t tell.
-      </p>
     </section>
   );
 }

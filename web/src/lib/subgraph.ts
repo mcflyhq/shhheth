@@ -16,24 +16,31 @@ export type DisplayProtocol = {
   id: string;
   name: string;
   color: string;
+  /** wei as a decimal string — for formatting at any precision client-side */
+  totalWei: string;
+  /** pre-formatted for the hero swap (3-decimal default) */
   formattedETH: string;
+  /** 0–100, computed against the global total */
   percentage: number;
 };
 
 export function getDisplayProtocols(snapshot: Snapshot, decimals = 3): DisplayProtocol[] {
   if (snapshot.totalETH === 0n) return [];
   const byId = new Map(snapshot.scaffold.map((s) => [s.id, s]));
-  return snapshot.protocols.map((p) => {
-    const fraction = Number((p.totalETH * 10000n) / snapshot.totalETH) / 100;
-    const config = byId.get(p.id);
-    return {
-      id: p.id,
-      name: p.name,
-      color: config?.color ?? "#3b5bff",
-      formattedETH: formatETH(p.totalETH, decimals),
-      percentage: fraction,
-    };
-  });
+  return snapshot.protocols
+    .map((p) => {
+      const fraction = Number((p.totalETH * 10000n) / snapshot.totalETH) / 100;
+      const config = byId.get(p.id);
+      return {
+        id: p.id,
+        name: p.name,
+        color: config?.color ?? "#3b5bff",
+        totalWei: p.totalETH.toString(),
+        formattedETH: formatETH(p.totalETH, decimals),
+        percentage: fraction,
+      };
+    })
+    .sort((a, b) => b.percentage - a.percentage);
 }
 
 async function fetchProtocol(

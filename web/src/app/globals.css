@@ -54,10 +54,7 @@ a { color: inherit; text-decoration: none; }
     linear-gradient(180deg, #070907 0%, #050604 52%, #080a08 100%);
 }
 
-.lens-stage.lens-active { --lens-opacity: 1; }
-
 .lens-stage::before,
-.lens-stage::after,
 .ambient-noise {
   content: "";
   position: absolute;
@@ -73,11 +70,46 @@ a { color: inherit; text-decoration: none; }
     repeating-linear-gradient(90deg, rgba(238, 247, 255, 0.02) 0 1px, transparent 1px 7px);
 }
 
-.lens-stage::after {
-  opacity: 0.34;
-  background-image: radial-gradient(circle at center, rgba(238, 247, 255, 0.16) 0 0.55px, transparent 0.7px);
-  background-size: 3px 3px;
-  mix-blend-mode: soft-light;
+/* Page-wide dotted pattern that's faintly visible and brightens organically
+ * where the cursor passes. Replaces the on-screen lens halo — the screen
+ * itself stays calm; the room around it is what reacts to you. */
+.page-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      460px circle at var(--lens-x) var(--lens-y),
+      rgba(238, 247, 255, 0.62),
+      rgba(159, 217, 255, 0.28) 28%,
+      rgba(159, 217, 255, 0.10) 55%,
+      transparent 82%
+    ),
+    linear-gradient(180deg, rgba(238, 247, 255, 0.07), rgba(238, 247, 255, 0.025) 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
+          mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
+  -webkit-mask-size: 3px 3px;
+          mask-size: 3px 3px;
+  -webkit-mask-repeat: repeat;
+          mask-repeat: repeat;
+}
+
+.page-overline {
+  position: absolute;
+  z-index: 11;
+  top: clamp(3.4rem, 5vw, 4.2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.58rem, 0.7vw, 0.7rem);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.48);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .ambient-noise {
@@ -386,17 +418,19 @@ a { color: inherit; text-decoration: none; }
   min-width: 0;
   padding: 0 clamp(0.55rem, 1vw, 0.85rem);
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.55);
-  background: color-mix(in srgb, var(--seg-color, #3b5bff) 30%, rgba(248, 251, 255, 0.65));
+  border-right: 1px solid rgba(248, 251, 255, 0.55);
+  /* Quiet by default — ink wash; color only on hover/focus. */
+  background: rgba(10, 13, 18, 0.10);
   color: rgba(10, 13, 18, 0.82);
   font-family: var(--mono);
   cursor: pointer;
-  transition: background 180ms ease, color 180ms ease;
+  transition: background 220ms ease, color 220ms ease;
   /* Each segment is its own container so labels can hide when there's
    * no room. Hovering still swaps the hero, so info is never lost. */
   container-type: inline-size;
 }
 
+.breakdown-segment:nth-child(even) { background: rgba(10, 13, 18, 0.17); }
 .breakdown-segment:last-child { border-right: none; }
 
 /* Hide the protocol name first when the segment is narrow, then the
@@ -444,28 +478,6 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
- * LENS HALO — soft glassy cursor highlight, only when on the screen
- * ========================================================================= */
-
-.lens-halo {
-  position: absolute;
-  z-index: 7;
-  width: 18rem;
-  height: 18rem;
-  pointer-events: none;
-  border-radius: 999px;
-  left: calc(var(--lens-x) - 9rem);
-  top: calc(var(--lens-y) - 9rem);
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.46) 0%, rgba(159, 217, 255, 0.18) 38%, transparent 64%);
-  mix-blend-mode: screen;
-  filter: blur(6px);
-  opacity: var(--lens-opacity);
-  transition: opacity 220ms ease;
-  will-change: transform, opacity;
-}
-
-/* =========================================================================
  * BELOW THE FOLD — flows after the screen, drives the stage's height
  * ========================================================================= */
 
@@ -499,8 +511,10 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--sans);
   font-style: italic;
   font-weight: 700;
-  font-size: 200px;
-  letter-spacing: -10px;
+  font-size: 220px;
+  /* Tight enough that the h-strokes overlap slightly — that 90s VHS-title
+   * "letters kissing" feel. */
+  letter-spacing: -38px;
 }
 
 .hero-line {
@@ -520,84 +534,216 @@ a { color: inherit; text-decoration: none; }
 .hero-line-heavy { color: rgba(238, 247, 255, 0.92); font-weight: 600; }
 .hero-line-soft { color: rgba(238, 247, 255, 0.5); }
 
-.protocol-list {
+/* =========================================================================
+ * SECTION HEADING — shared mono-caps title for By Protocol + Methodology
+ * ========================================================================= */
+
+.section-heading {
+  margin: 0 0 clamp(1rem, 1.8vh, 1.4rem);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.62rem, 0.78vw, 0.78rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.42);
+}
+
+/* =========================================================================
+ * PROTOCOL CARDS — foglight-style spotlight cards, one per protocol
+ * ========================================================================= */
+
+.protocols {
   max-width: 56rem;
   margin: 0 auto;
 }
 
-.protocol-list-heading {
-  margin: 0 0 1rem;
-  font-family: var(--mono);
-  font-weight: 600;
-  font-size: clamp(0.62rem, 0.78vw, 0.78rem);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(238, 247, 255, 0.45);
-}
-
-.protocol-list ul {
+.protocol-grid {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.7rem, 1.2vw, 1rem);
 }
 
-.protocol-row {
+@media (max-width: 720px) {
+  .protocol-grid { grid-template-columns: 1fr; }
+}
+
+.protocol-card {
+  --mx: 50%;
+  --my: -120px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: baseline;
-  gap: 1.2rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(238, 247, 255, 0.08);
-  border-radius: 0.55rem;
-  background: rgba(238, 247, 255, 0.018);
+  grid-template-rows: auto 1fr;
+  gap: clamp(0.85rem, 1.2vh, 1.1rem);
+  padding: clamp(1.05rem, 1.6vw, 1.4rem) clamp(1.15rem, 1.7vw, 1.55rem);
+  border: 1px solid rgba(238, 247, 255, 0.09);
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, rgba(238, 247, 255, 0.028), rgba(238, 247, 255, 0.008));
+  transition:
+    border-color 260ms ease,
+    transform 260ms ease;
 }
 
-.protocol-name {
+.protocol-card:hover,
+.protocol-card:focus-within {
+  border-color: rgba(238, 247, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.protocol-card-soon { opacity: 0.55; }
+
+.protocol-card > *:not(.spotlight-glow):not(.spotlight-pattern) {
+  position: relative;
+  z-index: 2;
+}
+
+.protocol-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.protocol-card-name {
   font-family: var(--sans);
   font-weight: 600;
-  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
-  color: rgba(238, 247, 255, 0.92);
+  font-size: clamp(1.05rem, 1.25vw, 1.22rem);
+  letter-spacing: -0.008em;
+  color: rgba(238, 247, 255, 0.94);
 }
 
-.protocol-value {
+.protocol-card-chain {
   font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
+  font-size: clamp(0.58rem, 0.66vw, 0.68rem);
   font-weight: 500;
-  font-size: clamp(0.85rem, 1vw, 0.96rem);
-  color: rgba(238, 247, 255, 0.78);
-}
-
-.protocol-status {
-  font-family: var(--mono);
-  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
-  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid currentColor;
+  color: rgba(238, 247, 255, 0.4);
 }
 
-.protocol-row-live .protocol-status { color: #6ee7b7; }
-.protocol-row-sunset .protocol-status { color: rgba(238, 247, 255, 0.45); }
-.protocol-row-soon { opacity: 0.42; }
-.protocol-row-soon .protocol-status { color: rgba(238, 247, 255, 0.45); }
+.protocol-card-data {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-self: end;
+}
 
-.methodology {
-  max-width: 44rem;
-  margin: 1.6rem auto 0;
+.protocol-card-pct {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(0.62rem, 0.72vw, 0.72rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--seg-color, rgba(238, 247, 255, 0.72));
+}
+
+.protocol-card-pct-quiet { color: rgba(238, 247, 255, 0.42); }
+
+.protocol-card-amount {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+  letter-spacing: -0.012em;
+  line-height: 1;
+  color: rgba(238, 247, 255, 0.96);
+}
+
+.protocol-card-amount-quiet {
+  color: rgba(238, 247, 255, 0.28);
+  font-weight: 500;
+}
+
+.protocol-card-amount-label {
   font-family: var(--sans);
-  font-size: clamp(0.74rem, 0.86vw, 0.86rem);
-  line-height: 1.55;
-  color: rgba(238, 247, 255, 0.5);
-  text-align: center;
+  font-size: clamp(0.74rem, 0.84vw, 0.84rem);
+  color: rgba(238, 247, 255, 0.48);
+}
+
+/* =========================================================================
+ * SPOTLIGHT SYSTEM — cursor-tracked glow + dotted-pattern reveal per card
+ * Adapted from foglight. --mx / --my are written by useSpotlight on the
+ * card itself when the cursor moves over the protocol grid.
+ * ========================================================================= */
+
+.spotlight-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    340px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--seg-color, #9fd9ff) 22%, transparent),
+    color-mix(in srgb, var(--seg-color, #9fd9ff) 7%, transparent) 32%,
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.spotlight-pattern {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      250px circle at var(--mx) var(--my),
+      rgba(238, 247, 255, 0.82),
+      rgba(238, 247, 255, 0.32) 32%,
+      transparent 66%
+    ),
+    linear-gradient(180deg, rgba(238, 247, 255, 0.14), rgba(238, 247, 255, 0.14));
+  -webkit-mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
+          mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
+  -webkit-mask-size: 3px 3px;
+          mask-size: 3px 3px;
+  -webkit-mask-repeat: repeat;
+          mask-repeat: repeat;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+[data-spotlight]:hover .spotlight-glow,
+[data-spotlight]:focus-within .spotlight-glow {
+  opacity: 1;
+  transition: opacity 280ms ease-out;
+}
+
+[data-spotlight]:hover .spotlight-pattern,
+[data-spotlight]:focus-within .spotlight-pattern {
+  opacity: 0.5;
+  transition: opacity 280ms ease-out;
+}
+
+/* =========================================================================
+ * METHODOLOGY — long-form scope explanation under the protocol cards
+ * ========================================================================= */
+
+.methodology-section {
+  max-width: 44rem;
+  margin: clamp(2.4rem, 5vh, 3.6rem) auto 0;
+}
+
+.methodology-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 1.4vh, 1.15rem);
+  font-family: var(--sans);
+  font-size: clamp(0.86rem, 0.96vw, 0.96rem);
+  line-height: 1.6;
+  color: rgba(238, 247, 255, 0.62);
   text-wrap: pretty;
 }
 
-.methodology-strong {
-  color: rgba(238, 247, 255, 0.92);
+.methodology-body p { margin: 0; }
+.methodology-body strong {
+  color: rgba(238, 247, 255, 0.94);
   font-weight: 700;
   letter-spacing: 0.005em;
 }
@@ -632,11 +778,11 @@ a { color: inherit; text-decoration: none; }
  * ========================================================================= */
 
 @media (max-width: 640px) {
-  .lens-halo { display: none; }
   .below-fold {
     margin-top: calc(5.4rem + var(--screen-h) + 2rem);
     padding-bottom: 2.4rem;
   }
   .screen-content { padding: 1.2rem; }
   .hero-shhh { max-width: 100%; }
+  .page-overline { top: clamp(2.8rem, 11vw, 3.8rem); font-size: 0.58rem; letter-spacing: 0.28em; }
 }

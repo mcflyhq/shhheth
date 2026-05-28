@@ -1,5 +1,6 @@
+import Methodology from "./components/Methodology";
 import OdometerStage from "./components/OdometerStage";
-import ProtocolList from "./components/ProtocolList";
+import ProtocolList, { type ProtocolListItem } from "./components/ProtocolList";
 import { formatETH, getDisplayProtocols, getTotals } from "@/lib/subgraph";
 
 export const revalidate = 60;
@@ -10,6 +11,10 @@ export default async function HomePage() {
   const isLive = snapshot.protocols.length > 0;
   const displayProtocols = getDisplayProtocols(snapshot, 3);
 
+  const scaffold: ProtocolListItem[] = snapshot.scaffold.map(
+    ({ id, name, status, color }) => ({ id, name, status, color }),
+  );
+
   return (
     <main>
       <OdometerStage
@@ -17,7 +22,8 @@ export default async function HomePage() {
         isLive={isLive}
         protocols={displayProtocols}
       >
-        <ProtocolList scaffold={snapshot.scaffold} live={snapshot.protocols} />
+        <ProtocolList scaffold={scaffold} live={displayProtocols} />
+        <Methodology />
       </OdometerStage>
     </main>
   );

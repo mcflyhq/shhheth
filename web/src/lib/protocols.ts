@@ -113,5 +113,4 @@ export const PROTOCOLS: ProtocolConfig[] = [
     query: `{ bowGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: bowAdapter,
   },
-  { id: "hinkal", name: "Hinkal", status: "soon", color: "#f0b441" },
 ];

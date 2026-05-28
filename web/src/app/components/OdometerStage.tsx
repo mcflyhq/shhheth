@@ -13,10 +13,8 @@ type Props = {
 };
 
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
-  const [onScreen, setOnScreen] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const stageRef = useRef<HTMLElement | null>(null);
-  const screenRef = useRef<HTMLDivElement>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
 
   useEffect(() => {
@@ -50,28 +48,8 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
       stageRect = target.getBoundingClientRect();
       stageRectRef.current = stageRect;
     }
-
     target.style.setProperty("--lens-x", `${event.clientX - stageRect.left}px`);
     target.style.setProperty("--lens-y", `${event.clientY - stageRect.top}px`);
-
-    const screen = screenRef.current;
-    if (!screen) {
-      setOnScreen((prev) => (prev ? false : prev));
-      return;
-    }
-
-    const screenRect = screen.getBoundingClientRect();
-    const inside =
-      event.clientX >= screenRect.left &&
-      event.clientX <= screenRect.right &&
-      event.clientY >= screenRect.top &&
-      event.clientY <= screenRect.bottom;
-
-    setOnScreen((prev) => (prev === inside ? prev : inside));
-  }, []);
-
-  const leaveStage = useCallback(() => {
-    setOnScreen(false);
   }, []);
 
   const hovered = useMemo(
@@ -81,25 +59,22 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
 
   const displayValue = hovered ? hovered.formattedETH : formattedTotal;
   const displayLabel = hovered
-    ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of total`
-    : "ETH · ever shielded · and counting";
-
-  const className = ["lens-stage", onScreen ? "lens-active" : "lens-idle"]
-    .filter(Boolean)
-    .join(" ");
+    ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
+    : "Live aggregate · updated every minute";
 
   return (
     <section
       ref={stageRef}
-      className={className}
+      className="lens-stage"
       onPointerMove={updateCursor}
-      onPointerEnter={updateCursor}
-      onPointerLeave={leaveStage}
     >
       <div className="ambient-noise" aria-hidden="true" />
+      <div className="page-pattern" aria-hidden="true" />
       <SiteHeader />
 
-      <div className="screen-frame" ref={screenRef} aria-hidden="true">
+      <p className="page-overline" aria-hidden="true">The quiet index for Ethereum</p>
+
+      <div className="screen-frame" aria-hidden="true">
         <div className="screen-glow" />
         <div className="screen-surface" />
         <div className="screen-content">
@@ -113,12 +88,12 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
 
           {protocols.length > 0 && (
             <div className="breakdown">
-              <p className="breakdown-heading">
-                <span>by protocol</span>
+              <div className="breakdown-heading">
+                <span>protocol breakdown</span>
                 <span className="breakdown-heading-sep" aria-hidden="true">·</span>
-                <span>ETH only</span>
-              </p>
-              <div className="screen-breakdown" role="group" aria-label="Breakdown by protocol, ETH only">
+                <span>hover a segment to focus the hero</span>
+              </div>
+              <div className="screen-breakdown" role="group" aria-label="Per-protocol share of all-time shielded ETH">
                 {protocols.map((p) => (
                   <button
                     key={p.id}
@@ -144,8 +119,6 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
         </div>
       </div>
 
-      <div className="lens-halo" aria-hidden="true" />
-
       <div className="below-fold">
         <div className="hero-tagline">
           <svg
@@ -162,7 +135,7 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
               dominantBaseline="middle"
               fill="none"
               stroke="currentColor"
-              strokeWidth="3.2"
+              strokeWidth="4"
               strokeLinejoin="round"
               strokeLinecap="round"
               className="hero-shhh-text"
@@ -171,13 +144,13 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
             </text>
           </svg>
           <h1 className="hero-line">
-            <span className="hero-line-heavy">Every ETH that ever went private.</span>
-            <span className="hero-line-soft">Counted. And counting.</span>
+            <span className="hero-line-heavy">Has been told to shhh across privacy protocols.</span>
+            <span className="hero-line-soft">And it&apos;s only getting quieter.</span>
           </h1>
         </div>
         {children}
         <footer className="site-footer">
-          <span>built by anon · for anon</span>
+          <span>built for people who prefer silence</span>
           <span className="site-footer-sep" aria-hidden="true">·</span>
           <span>we see the proof. we don&apos;t tell.</span>
         </footer>
