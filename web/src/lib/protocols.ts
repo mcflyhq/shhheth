@@ -62,6 +62,17 @@ const railgunAdapter: Adapter = (raw) => {
   };
 };
 
+const bowAdapter: Adapter = (raw) => {
+  const data = raw as {
+    bowGlobal: { totalShieldedETH: string; lastUpdatedBlock: string } | null;
+  };
+  if (!data.bowGlobal) return null;
+  return {
+    totalETH: BigInt(data.bowGlobal.totalShieldedETH),
+    lastUpdatedBlock: BigInt(data.bowGlobal.lastUpdatedBlock),
+  };
+};
+
 const GOLDSKY_BASE =
   "https://api.goldsky.com/api/public/project_cmkci36i9nujr01tz05uk6gfc/subgraphs";
 
@@ -93,6 +104,14 @@ export const PROTOCOLS: ProtocolConfig[] = [
     query: `{ railgunGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: railgunAdapter,
   },
-  { id: "privacy-pools", name: "Privacy Pools", status: "soon", color: "#9b6cff" },
+  {
+    id: "0xbow",
+    name: "0xbow",
+    status: "live",
+    color: "#9b6cff",
+    endpoint: `${GOLDSKY_BASE}/shhhethgrok-0xbow/0.1.0/gn`,
+    query: `{ bowGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
+    adapt: bowAdapter,
+  },
   { id: "hinkal", name: "Hinkal", status: "soon", color: "#f0b441" },
 ];
