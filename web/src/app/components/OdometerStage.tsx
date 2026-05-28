@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import BraunDigits from "./BraunDigits";
 import type { DisplayProtocol } from "@/lib/subgraph";
 
@@ -13,8 +21,32 @@ type Props = {
 
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
+  const shhhTextRef = useRef<SVGTextElement | null>(null);
+
+  /* Snap the letter SVG's viewBox to the actual rendered text. Without this,
+   * the SVG carries a fixed-width box of empty pixels to the right of "shhh",
+   * which pushes the dot away from the letters in the flex row. */
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (!shhhTextRef.current) return;
+      const bbox = shhhTextRef.current.getBBox();
+      if (bbox.width > 0) {
+        setLetterBox({
+          x: Math.floor(bbox.x),
+          w: Math.ceil(bbox.width + 4),
+        });
+      }
+    };
+    measure();
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(measure).catch(() => {});
+    }
+    window.addEventListener("resize", measure, { passive: true });
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -74,16 +106,17 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
         <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
           <svg
             className="hero-shhh-letters"
-            viewBox="0 0 460 220"
-            preserveAspectRatio="xMidYMid meet"
+            viewBox={`${letterBox.x} 0 ${letterBox.w} 200`}
+            preserveAspectRatio="xMidYMax meet"
             role="img"
             aria-hidden="true"
           >
             <text
-              x="50%"
-              y="58%"
-              textAnchor="middle"
-              dominantBaseline="middle"
+              ref={shhhTextRef}
+              x="0"
+              y="178"
+              textAnchor="start"
+              dominantBaseline="alphabetic"
               fill="none"
               stroke="currentColor"
               strokeWidth="4"

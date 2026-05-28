@@ -146,6 +146,8 @@ a { color: inherit; text-decoration: none; }
   height: clamp(5rem, 12vw, 10rem);
   width: auto;
   flex-shrink: 0;
+  /* italic slants can push past the bbox by a hair — don't clip them */
+  overflow: visible;
 }
 
 .hero-shhh-text {
