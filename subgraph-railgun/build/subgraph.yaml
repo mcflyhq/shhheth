@@ -1,0 +1,26 @@
+specVersion: 1.0.0
+description: Cumulative all-time ETH (WETH) shielded into Railgun on Ethereum mainnet
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: RailgunSmartWallet
+    network: mainnet
+    source:
+      address: "0xfa7093cdd9ee6932b4eb2c9e1cde7ce00b1fa4b9"
+      abi: RailgunSmartWallet
+      startBlock: 16076750
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - RailgunGlobal
+        - RailgunDailyInflow
+      abis:
+        - name: RailgunSmartWallet
+          file: RailgunSmartWallet/RailgunSmartWallet.json
+      eventHandlers:
+        - event: Shield(uint256,uint256,(bytes32,(uint8,address,uint256),uint120)[],(bytes32[3],bytes32)[],uint256[])
+          handler: handleShield
+      file: RailgunSmartWallet/RailgunSmartWallet.wasm

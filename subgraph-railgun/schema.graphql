@@ -1,0 +1,14 @@
+type RailgunGlobal @entity(immutable: false) {
+  id: ID!
+  totalShieldedETH: BigInt!
+  shieldCount: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type RailgunDailyInflow @entity(immutable: false) {
+  id: ID!
+  date: String!
+  shieldedETH: BigInt!
+  shieldCount: BigInt!
+}

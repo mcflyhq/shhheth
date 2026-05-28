@@ -51,6 +51,17 @@ const tornadoAdapter: Adapter = (raw) => {
   };
 };
 
+const railgunAdapter: Adapter = (raw) => {
+  const data = raw as {
+    railgunGlobal: { totalShieldedETH: string; lastUpdatedBlock: string } | null;
+  };
+  if (!data.railgunGlobal) return null;
+  return {
+    totalETH: BigInt(data.railgunGlobal.totalShieldedETH),
+    lastUpdatedBlock: BigInt(data.railgunGlobal.lastUpdatedBlock),
+  };
+};
+
 const GOLDSKY_BASE =
   "https://api.goldsky.com/api/public/project_cmkci36i9nujr01tz05uk6gfc/subgraphs";
 
@@ -73,7 +84,15 @@ export const PROTOCOLS: ProtocolConfig[] = [
     query: `{ tornadoGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: tornadoAdapter,
   },
+  {
+    id: "railgun",
+    name: "Railgun",
+    status: "live",
+    color: "#ff8a5b",
+    endpoint: `${GOLDSKY_BASE}/shhheth-railgun/2.0.0/gn`,
+    query: `{ railgunGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
+    adapt: railgunAdapter,
+  },
   { id: "privacy-pools", name: "Privacy Pools", status: "soon", color: "#9b6cff" },
-  { id: "railgun", name: "Railgun", status: "soon", color: "#ff8a5b" },
   { id: "hinkal", name: "Hinkal", status: "soon", color: "#f0b441" },
 ];
