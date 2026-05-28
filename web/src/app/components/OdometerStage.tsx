@@ -21,6 +21,7 @@ type Props = {
 
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [cursorInStage, setCursorInStage] = useState(false);
   const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
@@ -96,8 +97,10 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
   return (
     <section
       ref={stageRef}
-      className="lens-stage"
+      className={`lens-stage${cursorInStage ? " lens-stage-cursor-in" : ""}`}
       onPointerMove={updateCursor}
+      onPointerEnter={() => setCursorInStage(true)}
+      onPointerLeave={() => setCursorInStage(false)}
     >
       <div className="ambient-noise" aria-hidden="true" />
       <div className="page-pattern" aria-hidden="true" />
