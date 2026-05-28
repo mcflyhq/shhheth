@@ -4,37 +4,17 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from "rea
 import BraunDigits from "./BraunDigits";
 import SiteHeader from "./SiteHeader";
 
-type Mode = "day" | "night";
-
 type Props = {
   formattedTotal: string;
   isLive: boolean;
   children?: React.ReactNode;
 };
 
-const MODE_STORAGE_KEY = "shhheth-mode";
-
 export default function OdometerStage({ formattedTotal, isLive, children }: Props) {
   const [onScreen, setOnScreen] = useState(false);
-  const [mode, setMode] = useState<Mode>("day");
   const stageRef = useRef<HTMLElement | null>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(MODE_STORAGE_KEY);
-    if (saved === "day" || saved === "night") {
-      setMode(saved);
-    }
-  }, []);
-
-  const toggleMode = useCallback(() => {
-    setMode((prev) => {
-      const next: Mode = prev === "day" ? "night" : "day";
-      window.localStorage.setItem(MODE_STORAGE_KEY, next);
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -99,32 +79,12 @@ export default function OdometerStage({ formattedTotal, isLive, children }: Prop
     <section
       ref={stageRef}
       className={className}
-      data-mode={mode}
       onPointerMove={updateCursor}
       onPointerEnter={updateCursor}
       onPointerLeave={leaveStage}
     >
       <div className="ambient-noise" aria-hidden="true" />
       <SiteHeader />
-
-      <button
-        type="button"
-        className="mode-toggle"
-        onClick={toggleMode}
-        aria-label={mode === "day" ? "Switch to night mode" : "Switch to day mode"}
-        aria-pressed={mode === "night"}
-      >
-        {mode === "day" ? (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-          </svg>
-        )}
-      </button>
 
       <div className="screen-frame" ref={screenRef} aria-hidden="true">
         <div className="screen-glow" />
@@ -133,14 +93,28 @@ export default function OdometerStage({ formattedTotal, isLive, children }: Prop
           <BraunDigits value={formattedTotal} />
           <p className="screen-sublabel">
             <span className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`} aria-hidden="true" />
-            ever shielded · and counting
+            ETH · ever shielded · and counting
           </p>
         </div>
       </div>
 
       <div className="lens-halo" aria-hidden="true" />
 
-      <div className="below-fold">{children}</div>
+      <div className="below-fold">
+        <div className="hero-tagline">
+          <p className="hero-shhh" aria-hidden="true">shhh.</p>
+          <h1 className="hero-line">
+            <span className="hero-line-heavy">Every ETH that ever went private.</span>
+            <span className="hero-line-soft">Counted. And counting.</span>
+          </h1>
+        </div>
+        {children}
+        <footer className="site-footer">
+          <span>built by anon · for anon</span>
+          <span className="site-footer-sep" aria-hidden="true">·</span>
+          <span>we see the proof. we don&apos;t tell.</span>
+        </footer>
+      </div>
     </section>
   );
 }

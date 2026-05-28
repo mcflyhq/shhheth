@@ -6,7 +6,7 @@ import "./globals.css";
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   weight: ["400", "500", "600", "700"],
-  style: "normal",
+  style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -34,11 +34,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "shhheth — every ETH that ever went private",
   description:
-    "Live counter of all ETH ever shielded into Ethereum privacy protocols. Cumulative, not TVL. Goes up only.",
+    "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Cumulative, not TVL. Goes up only. We see the proof. We don't tell.",
   openGraph: {
     title: "shhheth — every ETH that ever went private",
     description:
-      "Live counter of all ETH ever shielded into Ethereum privacy protocols. Cumulative, not TVL. Goes up only.",
+      "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Goes up only.",
     url: siteUrl,
     siteName: "shhheth",
     type: "website",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "shhheth — every ETH that ever went private",
     description:
-      "Live counter of all ETH ever shielded into Ethereum privacy protocols. Cumulative, not TVL. Goes up only.",
+      "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Goes up only.",
   },
 };
 

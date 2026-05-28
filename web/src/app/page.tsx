@@ -6,13 +6,13 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   const snapshot = await getTotals();
-  const formattedTotal = snapshot ? formatETH(snapshot.totalETH, 3) : "0.000";
-  const isLive = snapshot !== null;
+  const formattedTotal = formatETH(snapshot.totalETH, 3);
+  const isLive = snapshot.protocols.length > 0;
 
   return (
     <main>
       <OdometerStage formattedTotal={formattedTotal} isLive={isLive}>
-        <ProtocolList protocols={snapshot?.protocols ?? null} />
+        <ProtocolList scaffold={snapshot.scaffold} live={snapshot.protocols} />
       </OdometerStage>
     </main>
   );

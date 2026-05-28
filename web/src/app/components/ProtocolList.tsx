@@ -1,32 +1,19 @@
-import type { ProtocolSnapshot } from "@/lib/subgraph";
+import type { ProtocolConfig, ProtocolResult } from "@/lib/protocols";
 import { formatETH } from "@/lib/subgraph";
 
 type Props = {
-  protocols: ProtocolSnapshot[] | null;
+  scaffold: ProtocolConfig[];
+  live: ProtocolResult[];
 };
 
-type Row = {
-  id: string;
-  name: string;
-  status: "live" | "sunset" | "soon";
-};
-
-const SCAFFOLD: Row[] = [
-  { id: "aztec", name: "Aztec Connect", status: "sunset" },
-  { id: "privacy-pools", name: "Privacy Pools", status: "live" },
-  { id: "tornado", name: "Tornado Cash", status: "live" },
-  { id: "railgun", name: "Railgun", status: "soon" },
-  { id: "hinkal", name: "Hinkal", status: "soon" },
-];
-
-export default function ProtocolList({ protocols }: Props) {
-  const byId = new Map((protocols ?? []).map((p) => [p.id, p]));
+export default function ProtocolList({ scaffold, live }: Props) {
+  const byId = new Map(live.map((p) => [p.id, p]));
 
   return (
     <section className="protocol-list" aria-label="Protocols">
-      <h2 className="protocol-list-heading">By protocol</h2>
+      <h2 className="protocol-list-heading">tracked across</h2>
       <ul>
-        {SCAFFOLD.map((row) => {
+        {scaffold.map((row) => {
           const snap = byId.get(row.id);
           const eth = snap ? formatETH(snap.totalETH, 1) : null;
           return (
@@ -41,9 +28,9 @@ export default function ProtocolList({ protocols }: Props) {
         })}
       </ul>
       <p className="methodology">
-        shhheth counts every ETH deposit into supported privacy protocols.
-        Withdrawals do not reduce the count — this is a lifetime total, not
-        current TVL.
+        We count every deposit into supported privacy protocols. Withdrawals
+        don&apos;t subtract — this is a lifetime total, not TVL. We see the
+        proof. We don&apos;t tell.
       </p>
     </section>
   );

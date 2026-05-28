@@ -47,7 +47,6 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   isolation: isolate;
   min-height: 100svh;
-  overflow: hidden;
   padding: clamp(1rem, 2vw, 1.7rem);
   background:
     radial-gradient(circle at 71% 51%, rgba(0, 71, 255, 0.22), transparent 18rem),
@@ -352,16 +351,50 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
- * BELOW THE FOLD
+ * BELOW THE FOLD — flows after the screen, drives the stage's height
  * ========================================================================= */
 
 .below-fold {
-  position: absolute;
-  left: clamp(1rem, 5vw, 3rem);
-  right: clamp(1rem, 5vw, 3rem);
-  top: calc(5.4rem + var(--screen-h) + clamp(2.4rem, 4vh, 3.6rem));
+  position: relative;
   z-index: 8;
+  padding: 0 clamp(1rem, 5vw, 3rem) clamp(2.4rem, 5vh, 4rem);
+  margin-top: calc(5.4rem + var(--screen-h) + clamp(2.4rem, 4vh, 3.6rem));
 }
+
+.hero-tagline {
+  max-width: 56rem;
+  margin: 0 auto clamp(2.8rem, 5vh, 4.2rem);
+  text-align: center;
+}
+
+.hero-shhh {
+  margin: 0 0 clamp(0.35rem, 0.8vh, 0.7rem);
+  font-family: var(--sans);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  color: rgba(238, 247, 255, 0.92);
+  text-shadow: 0 0 24px rgba(238, 247, 255, 0.12);
+}
+
+.hero-line {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(1.05rem, 1.6vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: rgba(238, 247, 255, 0.82);
+  text-wrap: balance;
+}
+
+.hero-line-heavy { color: rgba(238, 247, 255, 0.92); font-weight: 600; }
+.hero-line-soft { color: rgba(238, 247, 255, 0.5); }
 
 .protocol-list {
   max-width: 56rem;
@@ -439,107 +472,40 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
- * MODE TOGGLE — sits above-right the white screen
+ * SITE FOOTER — small, brand-mumble
  * ========================================================================= */
 
-.mode-toggle {
-  position: absolute;
-  z-index: 11;
-  top: clamp(3.4rem, 5.5vw, 4.6rem);
-  right: clamp(0.85rem, 3vw, 2.6rem);
-  display: inline-flex;
-  align-items: center;
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  padding: 0;
-  border-radius: 999px;
-  border: 1px solid rgba(238, 247, 255, 0.18);
-  background: rgba(238, 247, 255, 0.04);
-  color: rgba(238, 247, 255, 0.78);
-  cursor: pointer;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  align-items: center;
+  gap: 0.5rem 0.85rem;
+  max-width: 56rem;
+  margin: clamp(2.4rem, 5vh, 4rem) auto 0;
+  padding-top: clamp(1.4rem, 2.6vh, 1.8rem);
+  border-top: 1px solid rgba(238, 247, 255, 0.06);
+  font-family: var(--mono);
+  font-size: clamp(0.62rem, 0.74vw, 0.74rem);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.38);
+  text-align: center;
 }
 
-.mode-toggle svg { width: 1rem; height: 1rem; }
-
-.mode-toggle:hover,
-.mode-toggle:focus-visible {
-  color: rgba(238, 247, 255, 0.98);
-  border-color: rgba(238, 247, 255, 0.4);
-  background: rgba(238, 247, 255, 0.08);
-  transform: translateY(-1px);
-  outline: none;
-}
+.site-footer-sep { color: rgba(238, 247, 255, 0.2); }
 
 /* =========================================================================
- * NIGHT MODE — Braun DN40 mint VFD palette
- * ========================================================================= */
-
-[data-mode="night"] .screen-glow {
-  background:
-    radial-gradient(circle at 30% 14%, rgba(164, 233, 208, 0.14), transparent 19rem),
-    radial-gradient(circle at 74% 15%, rgba(164, 233, 208, 0.10), transparent 24rem),
-    radial-gradient(circle at 48% 86%, rgba(126, 227, 200, 0.10), transparent 28rem);
-  box-shadow:
-    0 0 0 1px rgba(164, 233, 208, 0.22),
-    0 0 28px rgba(164, 233, 208, 0.10),
-    0 0 94px rgba(126, 227, 200, 0.12),
-    inset 0 0 58px rgba(8, 12, 11, 0.86);
-}
-
-[data-mode="night"] .screen-surface {
-  border-color: rgba(164, 233, 208, 0.16);
-  background:
-    linear-gradient(180deg, #080a0c 0%, #050708 100%),
-    #06080a;
-  opacity: 1;
-  backdrop-filter: none;
-}
-
-[data-mode="night"] .screen-surface::before {
-  opacity: 0.18;
-  background:
-    repeating-linear-gradient(0deg, rgba(164, 233, 208, 0.10) 0 1px, transparent 1px 5px);
-  mix-blend-mode: screen;
-}
-
-[data-mode="night"] .braun-digits {
-  color: #a4e9d0;
-  text-shadow:
-    0 0 10px rgba(164, 233, 208, 0.55),
-    0 0 26px rgba(164, 233, 208, 0.22);
-}
-
-[data-mode="night"] .braun-digits-ghost {
-  color: rgba(164, 233, 208, 0.06);
-}
-
-[data-mode="night"] .braun-digits-suffix {
-  color: rgba(164, 233, 208, 0.5);
-}
-
-[data-mode="night"] .screen-sublabel {
-  color: rgba(164, 233, 208, 0.55);
-}
-
-[data-mode="night"] .lens-halo {
-  background:
-    radial-gradient(circle at center, rgba(164, 233, 208, 0.22) 0%, rgba(126, 227, 200, 0.10) 38%, transparent 64%);
-}
-
-/* =========================================================================
- * Small screens — stack everything, no absolute halo
+ * Small screens — keep the screen, drop the lens halo, tighten spacing
  * ========================================================================= */
 
 @media (max-width: 640px) {
   .lens-halo { display: none; }
   .below-fold {
-    position: static;
-    margin-top: 2.4rem;
-    padding-bottom: 3rem;
+    margin-top: calc(5.4rem + var(--screen-h) + 2rem);
+    padding-bottom: 2.4rem;
   }
-  .screen-content {
-    padding: 1.2rem;
-  }
+  .screen-content { padding: 1.2rem; }
+  .hero-shhh { font-size: clamp(2.2rem, 12vw, 3.6rem); }
 }
