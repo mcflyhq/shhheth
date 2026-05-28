@@ -24,6 +24,8 @@ export type ProtocolConfig = {
   id: string;
   name: string;
   status: ProtocolStatus;
+  /** Accent hex used by the breakdown segment + any per-protocol UI. */
+  color: string;
   endpoint?: string;
   query?: string;
   adapt?: Adapter;
@@ -57,6 +59,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     id: "aztec",
     name: "Aztec Connect",
     status: "sunset",
+    color: "#3b5bff",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok/0.1.0/gn`,
     query: `{ global(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: aztecAdapter,
@@ -65,11 +68,12 @@ export const PROTOCOLS: ProtocolConfig[] = [
     id: "tornado",
     name: "Tornado Cash",
     status: "live",
+    color: "#36c5b0",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok-tornado/0.1.0/gn`,
     query: `{ tornadoGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: tornadoAdapter,
   },
-  { id: "privacy-pools", name: "Privacy Pools", status: "soon" },
-  { id: "railgun", name: "Railgun", status: "soon" },
-  { id: "hinkal", name: "Hinkal", status: "soon" },
+  { id: "privacy-pools", name: "Privacy Pools", status: "soon", color: "#9b6cff" },
+  { id: "railgun", name: "Railgun", status: "soon", color: "#ff8a5b" },
+  { id: "hinkal", name: "Hinkal", status: "soon", color: "#f0b441" },
 ];

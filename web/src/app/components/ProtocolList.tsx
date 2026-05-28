@@ -28,9 +28,11 @@ export default function ProtocolList({ scaffold, live }: Props) {
         })}
       </ul>
       <p className="methodology">
-        We count every deposit into supported privacy protocols. Withdrawals
-        don&apos;t subtract — this is a lifetime total, not TVL. We see the
-        proof. We don&apos;t tell.
+        <span className="methodology-strong">ETH only.</span> Native ETH and
+        WETH (counted as ETH). Nothing else — no USDC, no USDT, no DAI, no
+        wrapped tokens, no anything-else that may also be shielded in these
+        protocols. Every ETH deposit counts; withdrawals don&apos;t subtract.
+        Lifetime total, not TVL. We see the proof. We don&apos;t tell.
       </p>
     </section>
   );

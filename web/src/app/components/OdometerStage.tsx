@@ -112,23 +112,33 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
           </div>
 
           {protocols.length > 0 && (
-            <div className="screen-breakdown" role="group" aria-label="Breakdown by protocol">
-              {protocols.map((p, i) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`breakdown-segment${hoveredId === p.id ? " is-active" : ""}`}
-                  style={{ width: `${Math.max(p.percentage, 1.5)}%`, ["--seg-i" as string]: i }}
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  onFocus={() => setHoveredId(p.id)}
-                  onBlur={() => setHoveredId(null)}
-                  aria-label={`${p.name}: ${p.formattedETH} ETH, ${p.percentage.toFixed(1)} percent of total`}
-                >
-                  <span className="breakdown-segment-label">{p.name.toLowerCase()}</span>
-                  <span className="breakdown-segment-pct">{p.percentage.toFixed(1)}%</span>
-                </button>
-              ))}
+            <div className="breakdown">
+              <p className="breakdown-heading">
+                <span>by protocol</span>
+                <span className="breakdown-heading-sep" aria-hidden="true">·</span>
+                <span>ETH only</span>
+              </p>
+              <div className="screen-breakdown" role="group" aria-label="Breakdown by protocol, ETH only">
+                {protocols.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`breakdown-segment${hoveredId === p.id ? " is-active" : ""}`}
+                    style={{
+                      width: `${Math.max(p.percentage, 1.5)}%`,
+                      ["--seg-color" as string]: p.color,
+                    }}
+                    onMouseEnter={() => setHoveredId(p.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onFocus={() => setHoveredId(p.id)}
+                    onBlur={() => setHoveredId(null)}
+                    aria-label={`${p.name}: ${p.formattedETH} ETH, ${p.percentage.toFixed(1)} percent of total`}
+                  >
+                    <span className="breakdown-segment-label">{p.name.toLowerCase()}</span>
+                    <span className="breakdown-segment-pct">{p.percentage.toFixed(1)}%</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
