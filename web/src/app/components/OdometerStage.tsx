@@ -11,17 +11,10 @@ type Props = {
   children?: React.ReactNode;
 };
 
-/* 3D emoji tracking — clamp distance + max-rotation feel. The emoji's face
- * turns toward the cursor like a head tracking it across a room. */
-const MAX_TILT_DEG = 28;
-const TILT_DISTANCE_PX = 420;
-
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
-  const dotRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -58,38 +51,6 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
     target.style.setProperty("--lens-y", `${event.clientY - stageRect.top}px`);
   }, []);
 
-  /* Track cursor globally — calculate yaw + pitch from the dot's center,
-   * clamp, and apply as a 3D rotation on the emoji.  rAF-throttled. */
-  useEffect(() => {
-    let raf = 0;
-    const handleMove = (event: globalThis.PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const dot = dotRef.current;
-        if (!dot) return;
-        const rect = dot.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = event.clientX - cx;
-        const dy = event.clientY - cy;
-        const norm = (value: number) =>
-          Math.max(-1, Math.min(1, value / TILT_DISTANCE_PX));
-        // rotateY: positive = right edge goes back ⇒ "looking left".
-        // We want the face to look toward the cursor, so flip dx.
-        const rotateY = -norm(dx) * MAX_TILT_DEG;
-        // rotateX: positive = top goes back ⇒ "looking up".
-        // Cursor below (positive dy) should make it look down ⇒ flip dy.
-        const rotateX = -norm(dy) * MAX_TILT_DEG;
-        setTilt({ x: rotateX, y: rotateY });
-      });
-    };
-    window.addEventListener("pointermove", handleMove, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", handleMove);
-    };
-  }, []);
-
   const hovered = useMemo(
     () => (hoveredId ? protocols.find((p) => p.id === hoveredId) ?? null : null),
     [hoveredId, protocols],
@@ -111,8 +72,29 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
 
       <div className="page-mast">
         <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
-          <span className="hero-shhh-letters" aria-hidden="true">shhh</span>
-          <span ref={dotRef} className="hero-shhh-dot" aria-hidden="true">
+          <svg
+            className="hero-shhh-letters"
+            viewBox="0 0 460 220"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-hidden="true"
+          >
+            <text
+              x="50%"
+              y="58%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              className="hero-shhh-text"
+            >
+              shhh
+            </text>
+          </svg>
+          <span className="hero-shhh-dot" aria-hidden="true">
             <svg className="hero-shhh-dot-ring" viewBox="0 0 100 100" aria-hidden="true">
               <circle
                 cx="50"
@@ -124,14 +106,7 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
-            <span
-              className="hero-shhh-emoji"
-              style={{
-                transform: `perspective(280px) rotateY(${tilt.y}deg) rotateX(${tilt.x}deg)`,
-              }}
-            >
-              🤫
-            </span>
+            <span className="hero-shhh-emoji">🤫</span>
           </span>
         </h1>
         <p className="hero-subtitle">The quiet index for shielded ETH.</p>

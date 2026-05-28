@@ -11,7 +11,7 @@ export default function Methodology() {
       </h2>
       <div className="methodology-body">
         <p>
-          shhheth records every deposit that entered a privacy protocol on
+          shhh records every deposit that entered a privacy protocol on
           Ethereum. The number is cumulative and only grows. Withdrawals and
           reshielding events are intentionally not subtracted — a historical
           record of capital that chose to disappear, not a live TVL dashboard.
