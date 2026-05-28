@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { request } from "graphql-request";
 
 import {
@@ -68,14 +69,21 @@ async function fetchProtocol(
   }
 }
 
-export async function getTotals(): Promise<Snapshot> {
+/**
+ * Per-request memoized aggregation across every live protocol. The
+ * `cache()` wrapper ensures that if a Server Component tree reads the
+ * snapshot more than once during one render, the underlying GraphQL
+ * fan-out only happens once. Combines with the page's `revalidate = 60`
+ * ISR window on the Next.js cache layer above.
+ */
+export const getTotals = cache(async (): Promise<Snapshot> => {
   const results = await Promise.allSettled(PROTOCOLS.map(fetchProtocol));
   const protocols = results
     .map((r) => (r.status === "fulfilled" ? r.value : null))
     .filter((v): v is ProtocolResult => v !== null);
   const totalETH = protocols.reduce((sum, p) => sum + p.totalETH, 0n);
   return { totalETH, protocols, scaffold: PROTOCOLS };
-}
+});
 
 const WEI_PER_ETH = 10n ** 18n;
 

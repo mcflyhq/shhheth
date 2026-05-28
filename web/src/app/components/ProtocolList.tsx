@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import type { ProtocolStatus } from "@/lib/protocols";
 import { formatETH, type DisplayProtocol } from "@/lib/subgraph";
 import { useSpotlight } from "./useSpotlight";
@@ -19,12 +21,17 @@ type Props = {
 };
 
 export default function ProtocolList({ scaffold, live }: Props) {
-  const liveById = new Map(live.map((p) => [p.id, p]));
-  const sorted = scaffold.slice().sort((a, b) => {
-    const ap = liveById.get(a.id)?.percentage ?? -1;
-    const bp = liveById.get(b.id)?.percentage ?? -1;
-    return bp - ap;
-  });
+  const liveById = useMemo(
+    () => new Map(live.map((p) => [p.id, p])),
+    [live],
+  );
+
+  const sorted = useMemo(() => {
+    const pctById = new Map(live.map((p) => [p.id, p.percentage]));
+    return scaffold
+      .slice()
+      .sort((a, b) => (pctById.get(b.id) ?? -1) - (pctById.get(a.id) ?? -1));
+  }, [scaffold, live]);
 
   const { ref, onPointerMove } = useSpotlight<HTMLUListElement>();
 

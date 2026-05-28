@@ -1,9 +1,11 @@
+import { memo } from "react";
+
 type Props = {
   value: string;
   suffix?: string;
 };
 
-export default function BraunDigits({ value, suffix = "ETH" }: Props) {
+function BraunDigits({ value, suffix = "ETH" }: Props) {
   return (
     <div className="braun-digits" aria-label={`${value} ${suffix} ever shielded`}>
       <span className="braun-digits-ghost" aria-hidden="true">
@@ -14,6 +16,10 @@ export default function BraunDigits({ value, suffix = "ETH" }: Props) {
     </div>
   );
 }
+
+// React.memo so OdometerStage's cursor-enter/leave state changes don't
+// re-render the digits when the displayed value is unchanged.
+export default memo(BraunDigits);
 
 function ghostFor(value: string): string {
   // DSEG7 renders "8" as a fully-lit segment. Show a faint ghost of all

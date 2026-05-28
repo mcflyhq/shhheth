@@ -10,6 +10,7 @@ import {
   type PointerEvent,
 } from "react";
 import BraunDigits from "./BraunDigits";
+import BreakdownSegment from "./BreakdownSegment";
 import type { DisplayProtocol } from "@/lib/subgraph";
 
 type Props = {
@@ -88,6 +89,11 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
     () => (hoveredId ? protocols.find((p) => p.id === hoveredId) ?? null : null),
     [hoveredId, protocols],
   );
+
+  // Stable handlers — passed as props to memoized BreakdownSegment so the
+  // segments don't re-render just because a closure was re-created.
+  const handleSegmentActivate = useCallback((id: string) => setHoveredId(id), []);
+  const handleSegmentDeactivate = useCallback(() => setHoveredId(null), []);
 
   const displayValue = hovered ? hovered.formattedETH : formattedTotal;
   const sublabel = hovered
@@ -170,23 +176,13 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
               </div>
               <div className="screen-breakdown" role="group" aria-label="Per-protocol share of all-time shielded ETH">
                 {protocols.map((p) => (
-                  <button
+                  <BreakdownSegment
                     key={p.id}
-                    type="button"
-                    className={`breakdown-segment${hoveredId === p.id ? " is-active" : ""}`}
-                    style={{
-                      width: `${Math.max(p.percentage, 1.5)}%`,
-                      ["--seg-color" as string]: p.color,
-                    }}
-                    onMouseEnter={() => setHoveredId(p.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onFocus={() => setHoveredId(p.id)}
-                    onBlur={() => setHoveredId(null)}
-                    aria-label={`${p.name}: ${p.formattedETH} ETH, ${p.percentage.toFixed(1)} percent of total`}
-                  >
-                    <span className="breakdown-segment-label">{p.name.toLowerCase()}</span>
-                    <span className="breakdown-segment-pct">{p.percentage.toFixed(1)}%</span>
-                  </button>
+                    protocol={p}
+                    isActive={hoveredId === p.id}
+                    onActivate={handleSegmentActivate}
+                    onDeactivate={handleSegmentDeactivate}
+                  />
                 ))}
               </div>
             </div>
