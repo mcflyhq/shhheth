@@ -52,17 +52,20 @@ export default function ProtocolList({ scaffold, live }: Props) {
               <span className="spotlight-pattern" aria-hidden="true" />
               <div className="protocol-card-head">
                 <span className="protocol-card-name">{row.name}</span>
+                {data ? (
+                  <span className="protocol-card-pct">{pct}</span>
+                ) : (
+                  <span className="protocol-card-pct protocol-card-pct-quiet">{statusText}</span>
+                )}
               </div>
               <div className="protocol-card-data">
                 {data ? (
                   <>
-                    <span className="protocol-card-pct">{pct}</span>
                     <span className="protocol-card-amount">{amount}</span>
                     <span className="protocol-card-amount-label">ETH shielded · cumulative</span>
                   </>
                 ) : (
                   <>
-                    <span className="protocol-card-pct protocol-card-pct-quiet">{statusText}</span>
                     <span className="protocol-card-amount protocol-card-amount-quiet">—</span>
                     <span className="protocol-card-amount-label">catching up</span>
                   </>
