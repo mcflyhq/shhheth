@@ -1,9 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import BraunDigits from "./BraunDigits";
 import SiteHeader from "./SiteHeader";
 import type { DisplayProtocol } from "@/lib/subgraph";
+
+const DOT_RADIUS = 40;
+const DOT_GAP = 28;        // viewBox units between the end of "shhh" and the dot
+const DOT_CY = 148;        // vertical center of the dot in viewBox space
 
 type Props = {
   formattedTotal: string;
@@ -14,8 +26,56 @@ type Props = {
 
 export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [dotX, setDotX] = useState(560);
+  const [emojiAngle, setEmojiAngle] = useState(0);
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
+  const shhhTextRef = useRef<SVGTextElement | null>(null);
+  const dotRef = useRef<SVGCircleElement | null>(null);
+
+  /* Snap the dot to just after the rendered "shhh" — measure the SVG text's
+   * bbox after fonts settle so DM Sans's actual width drives the layout,
+   * not a hand-tuned constant. */
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (!shhhTextRef.current) return;
+      const bbox = shhhTextRef.current.getBBox();
+      setDotX(bbox.x + bbox.width + DOT_GAP);
+    };
+    measure();
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(measure).catch(() => {});
+    }
+    window.addEventListener("resize", measure, { passive: true });
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  /* Track the page cursor and rotate the 🤫 so its face points at it.
+   * rAF-throttled so we don't thrash on rapid pointer moves. */
+  useEffect(() => {
+    let raf = 0;
+    const handleMove = (event: globalThis.PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const circle = dotRef.current;
+        if (!circle) return;
+        const rect = circle.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = event.clientX - cx;
+        const dy = event.clientY - cy;
+        // atan2 returns 0° east, +90° south (screen coords). Add 90° so the
+        // emoji's "up" is what aligns with the cursor direction.
+        const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+        setEmojiAngle(deg);
+      });
+    };
+    window.addEventListener("pointermove", handleMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", handleMove);
+    };
+  }, []);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -76,12 +136,13 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
         <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
           <svg
             className="hero-shhh"
-            viewBox="0 0 760 220"
+            viewBox={`0 0 ${Math.max(760, dotX + DOT_RADIUS + 40)} 220`}
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-hidden="true"
           >
             <text
+              ref={shhhTextRef}
               x="40"
               y="58%"
               textAnchor="start"
@@ -96,19 +157,25 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
               shhh
             </text>
             <circle
-              cx="640"
-              cy="148"
-              r="40"
+              ref={dotRef}
+              cx={dotX}
+              cy={DOT_CY}
+              r={DOT_RADIUS}
               fill="none"
               stroke="currentColor"
               strokeWidth="4"
             />
             <text
-              x="640"
-              y="162"
+              x={dotX}
+              y={DOT_CY}
               textAnchor="middle"
-              dominantBaseline="middle"
+              dominantBaseline="central"
               className="hero-shhh-emoji"
+              style={{
+                transformBox: "fill-box",
+                transformOrigin: "center",
+                transform: `rotate(${emojiAngle}deg)`,
+              }}
             >
               🤫
             </text>
