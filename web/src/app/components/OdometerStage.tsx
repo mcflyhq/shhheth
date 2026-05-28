@@ -148,7 +148,28 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
 
       <div className="below-fold">
         <div className="hero-tagline">
-          <p className="hero-shhh" aria-hidden="true">shhh.</p>
+          <svg
+            className="hero-shhh"
+            viewBox="0 0 800 200"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label="shhh"
+          >
+            <text
+              x="50%"
+              y="58%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              className="hero-shhh-text"
+            >
+              shhh.
+            </text>
+          </svg>
           <h1 className="hero-line">
             <span className="hero-line-heavy">Every ETH that ever went private.</span>
             <span className="hero-line-soft">Counted. And counting.</span>
