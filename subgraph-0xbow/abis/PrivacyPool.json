@@ -1,0 +1,14 @@
+[
+  {
+    "anonymous": false,
+    "name": "Deposited",
+    "type": "event",
+    "inputs": [
+      { "indexed": true,  "internalType": "address", "name": "_depositor",         "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "_commitment",        "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "_label",             "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "_value",             "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "_precommitmentHash", "type": "uint256" }
+    ]
+  }
+]

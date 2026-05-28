@@ -1,0 +1,14 @@
+type BowGlobal @entity(immutable: false) {
+  id: ID!
+  totalShieldedETH: BigInt!
+  depositCount: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type BowDailyInflow @entity(immutable: false) {
+  id: ID!
+  date: String!
+  shieldedETH: BigInt!
+  depositCount: BigInt!
+}

@@ -1,0 +1,27 @@
+specVersion: 1.0.0
+description: Cumulative all-time ETH shielded into the 0xbow / Privacy Pools ETH pool on
+  Ethereum mainnet
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: PrivacyPoolETH
+    network: mainnet
+    source:
+      address: "0xF241d57C6DebAe225c0F2e6eA1529373C9A9C9fB"
+      abi: PrivacyPool
+      startBlock: 22153714
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BowGlobal
+        - BowDailyInflow
+      abis:
+        - name: PrivacyPool
+          file: PrivacyPoolETH/PrivacyPool.json
+      eventHandlers:
+        - event: Deposited(indexed address,uint256,uint256,uint256,uint256)
+          handler: handleDeposited
+      file: PrivacyPoolETH/PrivacyPoolETH.wasm

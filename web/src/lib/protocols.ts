@@ -109,7 +109,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     name: "0xbow",
     status: "live",
     color: "#9b6cff",
-    endpoint: `${GOLDSKY_BASE}/shhhethgrok-0xbow/0.1.0/gn`,
+    endpoint: `${GOLDSKY_BASE}/shhheth-0xbow/1.0.0/gn`,
     query: `{ bowGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
     adapt: bowAdapter,
   },

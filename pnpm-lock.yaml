@@ -17,6 +17,15 @@ importers:
         specifier: ^0.38.0
         version: 0.38.2
 
+  subgraph-0xbow:
+    devDependencies:
+      '@graphprotocol/graph-cli':
+        specifier: ^0.97.0
+        version: 0.97.1(@types/node@20.19.41)(typescript@5.9.3)(zod@3.25.76)
+      '@graphprotocol/graph-ts':
+        specifier: ^0.38.0
+        version: 0.38.2
+
   subgraph-railgun:
     devDependencies:
       '@graphprotocol/graph-cli':

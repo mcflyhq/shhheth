@@ -2,6 +2,7 @@ packages:
   - web
   - subgraph
   - subgraph-railgun
+  - subgraph-0xbow
 
 ignoredBuiltDependencies:
   - sharp
