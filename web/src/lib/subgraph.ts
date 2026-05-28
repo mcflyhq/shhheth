@@ -12,6 +12,26 @@ export type Snapshot = {
   scaffold: ProtocolConfig[];
 };
 
+export type DisplayProtocol = {
+  id: string;
+  name: string;
+  formattedETH: string;
+  percentage: number;
+};
+
+export function getDisplayProtocols(snapshot: Snapshot, decimals = 3): DisplayProtocol[] {
+  if (snapshot.totalETH === 0n) return [];
+  return snapshot.protocols.map((p) => {
+    const fraction = Number((p.totalETH * 10000n) / snapshot.totalETH) / 100;
+    return {
+      id: p.id,
+      name: p.name,
+      formattedETH: formatETH(p.totalETH, decimals),
+      percentage: fraction,
+    };
+  });
+}
+
 async function fetchProtocol(
   config: ProtocolConfig,
 ): Promise<ProtocolResult | null> {

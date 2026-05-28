@@ -1,17 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import BraunDigits from "./BraunDigits";
 import SiteHeader from "./SiteHeader";
+import type { DisplayProtocol } from "@/lib/subgraph";
 
 type Props = {
   formattedTotal: string;
   isLive: boolean;
+  protocols: DisplayProtocol[];
   children?: React.ReactNode;
 };
 
-export default function OdometerStage({ formattedTotal, isLive, children }: Props) {
+export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
   const [onScreen, setOnScreen] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const stageRef = useRef<HTMLElement | null>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
@@ -71,6 +74,16 @@ export default function OdometerStage({ formattedTotal, isLive, children }: Prop
     setOnScreen(false);
   }, []);
 
+  const hovered = useMemo(
+    () => (hoveredId ? protocols.find((p) => p.id === hoveredId) ?? null : null),
+    [hoveredId, protocols],
+  );
+
+  const displayValue = hovered ? hovered.formattedETH : formattedTotal;
+  const displayLabel = hovered
+    ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of total`
+    : "ETH · ever shielded · and counting";
+
   const className = ["lens-stage", onScreen ? "lens-active" : "lens-idle"]
     .filter(Boolean)
     .join(" ");
@@ -90,11 +103,34 @@ export default function OdometerStage({ formattedTotal, isLive, children }: Prop
         <div className="screen-glow" />
         <div className="screen-surface" />
         <div className="screen-content">
-          <BraunDigits value={formattedTotal} />
-          <p className="screen-sublabel">
-            <span className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`} aria-hidden="true" />
-            ETH · ever shielded · and counting
-          </p>
+          <div className="screen-digits">
+            <BraunDigits value={displayValue} />
+            <p className="screen-sublabel">
+              <span className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`} aria-hidden="true" />
+              {displayLabel}
+            </p>
+          </div>
+
+          {protocols.length > 0 && (
+            <div className="screen-breakdown" role="group" aria-label="Breakdown by protocol">
+              {protocols.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`breakdown-segment${hoveredId === p.id ? " is-active" : ""}`}
+                  style={{ width: `${Math.max(p.percentage, 1.5)}%`, ["--seg-i" as string]: i }}
+                  onMouseEnter={() => setHoveredId(p.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onFocus={() => setHoveredId(p.id)}
+                  onBlur={() => setHoveredId(null)}
+                  aria-label={`${p.name}: ${p.formattedETH} ETH, ${p.percentage.toFixed(1)} percent of total`}
+                >
+                  <span className="breakdown-segment-label">{p.name.toLowerCase()}</span>
+                  <span className="breakdown-segment-pct">{p.percentage.toFixed(1)}%</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
