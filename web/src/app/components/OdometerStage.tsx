@@ -58,9 +58,9 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
   );
 
   const displayValue = hovered ? hovered.formattedETH : formattedTotal;
-  const displayLabel = hovered
+  const sublabel = hovered
     ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
-    : "Live aggregate · updated every minute";
+    : "Has been told to shhh across privacy protocols";
 
   return (
     <section
@@ -72,7 +72,50 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
       <div className="page-pattern" aria-hidden="true" />
       <SiteHeader />
 
-      <p className="page-overline" aria-hidden="true">The quiet index for Ethereum</p>
+      <div className="page-mast">
+        <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
+          <svg
+            className="hero-shhh"
+            viewBox="0 0 760 220"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-hidden="true"
+          >
+            <text
+              x="40"
+              y="58%"
+              textAnchor="start"
+              dominantBaseline="middle"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              className="hero-shhh-text"
+            >
+              shhh
+            </text>
+            <circle
+              cx="640"
+              cy="148"
+              r="40"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <text
+              x="640"
+              y="162"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="hero-shhh-emoji"
+            >
+              🤫
+            </text>
+          </svg>
+        </h1>
+        <p className="hero-subtitle">The quiet index for shielded ETH.</p>
+      </div>
 
       <div className="screen-frame" aria-hidden="true">
         <div className="screen-glow" />
@@ -82,16 +125,16 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
             <BraunDigits value={displayValue} />
             <p className="screen-sublabel">
               <span className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`} aria-hidden="true" />
-              {displayLabel}
+              {sublabel}
             </p>
           </div>
 
           {protocols.length > 0 && (
             <div className="breakdown">
               <div className="breakdown-heading">
-                <span>protocol breakdown</span>
+                <span>Live aggregate</span>
                 <span className="breakdown-heading-sep" aria-hidden="true">·</span>
-                <span>hover a segment to focus the hero</span>
+                <span>updated every minute</span>
               </div>
               <div className="screen-breakdown" role="group" aria-label="Per-protocol share of all-time shielded ETH">
                 {protocols.map((p) => (
@@ -120,34 +163,6 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
       </div>
 
       <div className="below-fold">
-        <div className="hero-tagline">
-          <svg
-            className="hero-shhh"
-            viewBox="0 0 800 200"
-            preserveAspectRatio="xMidYMid meet"
-            role="img"
-            aria-label="shhh"
-          >
-            <text
-              x="50%"
-              y="58%"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              className="hero-shhh-text"
-            >
-              shhh.
-            </text>
-          </svg>
-          <h1 className="hero-line">
-            <span className="hero-line-heavy">Has been told to shhh across privacy protocols.</span>
-            <span className="hero-line-soft">And it&apos;s only getting quieter.</span>
-          </h1>
-        </div>
         {children}
         <footer className="site-footer">
           <span>built for people who prefer silence</span>

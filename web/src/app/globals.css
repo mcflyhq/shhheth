@@ -14,6 +14,7 @@
   --line-light: rgba(238, 247, 255, 0.72);
   --mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --serif: var(--font-dm-serif), Georgia, "Times New Roman", serif;
   --dseg: var(--font-dseg7), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -42,12 +43,18 @@ a { color: inherit; text-decoration: none; }
 .lens-stage {
   --lens-x: 78vw;
   --lens-y: 30vh;
-  --lens-opacity: 0;
   --screen-h: clamp(20rem, 52svh, 36rem);
   position: relative;
   isolation: isolate;
   min-height: 100svh;
-  padding: clamp(1rem, 2vw, 1.7rem);
+  padding:
+    clamp(4.5rem, 7vw, 6rem)
+    clamp(1.4rem, 5vw, 3.4rem)
+    clamp(2.4rem, 5vh, 4rem);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(2rem, 4vh, 3.2rem);
   background:
     radial-gradient(circle at 71% 51%, rgba(0, 71, 255, 0.22), transparent 18rem),
     radial-gradient(circle at 31% 26%, rgba(238, 247, 255, 0.06), transparent 20rem),
@@ -70,46 +77,28 @@ a { color: inherit; text-decoration: none; }
     repeating-linear-gradient(90deg, rgba(238, 247, 255, 0.02) 0 1px, transparent 1px 7px);
 }
 
-/* Page-wide dotted pattern that's faintly visible and brightens organically
- * where the cursor passes. Replaces the on-screen lens halo — the screen
- * itself stays calm; the room around it is what reacts to you. */
+/* Tiny trail of dots under the cursor — much quieter than the previous
+ * page-wide reveal. Baseline is now zero (no ambient dot wash), and the
+ * cursor radius is small + low-opacity so it reads as a soft hint rather
+ * than scenery. Cards still get the stronger spotlight via foglight's
+ * .spotlight-pattern. */
 .page-pattern {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(
-      460px circle at var(--lens-x) var(--lens-y),
-      rgba(238, 247, 255, 0.62),
-      rgba(159, 217, 255, 0.28) 28%,
-      rgba(159, 217, 255, 0.10) 55%,
-      transparent 82%
-    ),
-    linear-gradient(180deg, rgba(238, 247, 255, 0.07), rgba(238, 247, 255, 0.025) 60%, transparent 100%);
+  background: radial-gradient(
+    260px circle at var(--lens-x) var(--lens-y),
+    rgba(238, 247, 255, 0.18),
+    rgba(159, 217, 255, 0.06) 32%,
+    transparent 62%
+  );
   -webkit-mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
           mask-image: radial-gradient(circle at center, black 0 0.5px, transparent 0.7px);
   -webkit-mask-size: 3px 3px;
           mask-size: 3px 3px;
   -webkit-mask-repeat: repeat;
           mask-repeat: repeat;
-}
-
-.page-overline {
-  position: absolute;
-  z-index: 11;
-  top: clamp(3.4rem, 5vw, 4.2rem);
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  font-family: var(--mono);
-  font-size: clamp(0.58rem, 0.7vw, 0.7rem);
-  font-weight: 600;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: rgba(238, 247, 255, 0.48);
-  white-space: nowrap;
-  pointer-events: none;
 }
 
 .ambient-noise {
@@ -130,40 +119,10 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   z-index: 12;
   top: clamp(1.4rem, 3vw, 2.4rem);
-  left: clamp(1rem, 5vw, 3rem);
   right: clamp(1rem, 5vw, 3rem);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 3rem;
-}
-
-.brand-lockup {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.brand-symbol {
-  display: inline-block;
-  font-size: 1.4rem;
-  filter: drop-shadow(0 0 10px rgba(238, 247, 255, 0.18));
-  transform: translateY(-1px);
-}
-
-.brand-wordmark {
-  font-family: var(--mono);
-  font-weight: 600;
-  font-size: clamp(1rem, 1.2vw, 1.18rem);
-  letter-spacing: -0.01em;
-  color: rgba(238, 247, 255, 0.94);
-}
-
-.site-header-right {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(0.85rem, 1.6vw, 1.4rem);
+  justify-content: flex-end;
 }
 
 .nav-x-link {
@@ -191,13 +150,74 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
+ * PAGE MAST — big hollow "shhh🤫" logo + serif italic subtitle.
+ * Lives above the white screen, in normal flow.
+ * ========================================================================= */
+
+.page-mast {
+  position: relative;
+  z-index: 5;
+  max-width: 68rem;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero-shhh-logo {
+  margin: 0;
+  font-size: 0;
+  line-height: 0;
+}
+
+.hero-shhh {
+  display: block;
+  width: 100%;
+  max-width: clamp(22rem, 78vw, 68rem);
+  height: auto;
+  margin: 0 auto;
+  color: rgba(238, 247, 255, 0.92);
+  filter: drop-shadow(0 0 32px rgba(238, 247, 255, 0.14));
+}
+
+.hero-shhh-text {
+  font-family: var(--sans);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 220px;
+  letter-spacing: -38px;
+}
+
+.hero-shhh-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 52px;
+  /* Stripped of the parent stroke so the emoji renders in its native colors */
+  stroke: none;
+  fill: currentColor;
+}
+
+.hero-subtitle {
+  margin: clamp(0.9rem, 1.6vw, 1.4rem) auto 0;
+  max-width: 30ch;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.1rem, 1.8vw, 1.65rem);
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+  color: rgba(238, 247, 255, 0.62);
+  text-wrap: balance;
+}
+
+/* =========================================================================
  * SCREEN — bright glass front layer
  * ========================================================================= */
 
 .screen-frame {
-  position: absolute;
-  inset: 5.4rem clamp(0.85rem, 3vw, 2.6rem) auto;
+  position: relative;
+  width: 100%;
+  max-width: 80rem;
   height: var(--screen-h);
+  margin: 0 auto;
   z-index: 4;
   display: grid;
   place-items: stretch;
@@ -478,61 +498,20 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
- * BELOW THE FOLD — flows after the screen, drives the stage's height
+ * BELOW THE FOLD — protocol cards + methodology + footer, normal flow
  * ========================================================================= */
 
 .below-fold {
   position: relative;
   z-index: 8;
-  padding: 0 clamp(1rem, 5vw, 3rem) clamp(2.4rem, 5vh, 4rem);
-  margin-top: calc(5.4rem + var(--screen-h) + clamp(2.4rem, 4vh, 3.6rem));
-}
-
-.hero-tagline {
-  max-width: 56rem;
-  margin: 0 auto clamp(2.8rem, 5vh, 4.2rem);
-  text-align: center;
-}
-
-/* Big hollow VHS-board-style "shhh." — italic outlined letters, scales to
- * the tagline container width. Pure SVG so the stroke stays crisp at any
- * size and we can tune it independent of system text rendering. */
-.hero-shhh {
-  display: block;
   width: 100%;
-  max-width: clamp(20rem, 70vw, 62rem);
-  height: auto;
-  margin: 0 auto clamp(0.4rem, 1vh, 0.9rem);
-  color: rgba(238, 247, 255, 0.86);
-  filter: drop-shadow(0 0 28px rgba(238, 247, 255, 0.15));
-}
-
-.hero-shhh-text {
-  font-family: var(--sans);
-  font-style: italic;
-  font-weight: 700;
-  font-size: 220px;
-  /* Tight enough that the h-strokes overlap slightly — that 90s VHS-title
-   * "letters kissing" feel. */
-  letter-spacing: -38px;
-}
-
-.hero-line {
-  margin: 0;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: clamp(1.6rem, 3.5vh, 2.8rem) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15em;
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: clamp(1.05rem, 1.6vw, 1.5rem);
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: rgba(238, 247, 255, 0.82);
-  text-wrap: balance;
+  gap: clamp(2.4rem, 5vh, 4rem);
 }
-
-.hero-line-heavy { color: rgba(238, 247, 255, 0.92); font-weight: 600; }
-.hero-line-soft { color: rgba(238, 247, 255, 0.5); }
 
 /* =========================================================================
  * SECTION HEADING — shared mono-caps title for By Protocol + Methodology
@@ -722,30 +701,76 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* =========================================================================
- * METHODOLOGY — long-form scope explanation under the protocol cards
+ * METHODOLOGY — eyebrow + serif title + sans body, foglight subpage style
  * ========================================================================= */
 
 .methodology-section {
-  max-width: 44rem;
-  margin: clamp(2.4rem, 5vh, 3.6rem) auto 0;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.methodology-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 clamp(1.2rem, 2vw, 1.6rem);
+  color: rgba(238, 247, 255, 0.55);
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.76vw, 0.76rem);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.methodology-eyebrow-line {
+  display: inline-block;
+  width: 1.6rem;
+  height: 1px;
+  background: rgba(238, 247, 255, 0.42);
+}
+
+.methodology-title {
+  margin: 0 0 clamp(1.6rem, 3vw, 2.4rem);
+  max-width: 22ch;
+  color: rgba(245, 248, 252, 0.96);
+  font-size: clamp(2rem, 4.4vw, 3.6rem);
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.02;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05em;
+  text-wrap: balance;
+}
+
+.methodology-title-heavy { font-family: var(--serif); font-weight: 400; }
+.methodology-title-soft {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 0.78em;
+  color: rgba(238, 247, 255, 0.66);
 }
 
 .methodology-body {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.85rem, 1.4vh, 1.15rem);
+  gap: clamp(0.95rem, 1.6vh, 1.3rem);
+  max-width: 48rem;
   font-family: var(--sans);
-  font-size: clamp(0.86rem, 0.96vw, 0.96rem);
-  line-height: 1.6;
-  color: rgba(238, 247, 255, 0.62);
+  font-size: clamp(1rem, 1.06vw, 1.1rem);
+  font-weight: 400;
+  line-height: 1.62;
+  color: rgba(238, 247, 255, 0.74);
   text-wrap: pretty;
 }
 
 .methodology-body p { margin: 0; }
 .methodology-body strong {
-  color: rgba(238, 247, 255, 0.94);
+  color: rgba(238, 247, 255, 0.96);
   font-weight: 700;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.002em;
 }
 
 /* =========================================================================
@@ -778,11 +803,10 @@ a { color: inherit; text-decoration: none; }
  * ========================================================================= */
 
 @media (max-width: 640px) {
-  .below-fold {
-    margin-top: calc(5.4rem + var(--screen-h) + 2rem);
-    padding-bottom: 2.4rem;
+  .lens-stage {
+    padding: clamp(3.6rem, 12vw, 5rem) clamp(1rem, 4vw, 2rem) clamp(2.4rem, 5vh, 3.4rem);
+    gap: clamp(1.6rem, 4vh, 2.4rem);
   }
   .screen-content { padding: 1.2rem; }
   .hero-shhh { max-width: 100%; }
-  .page-overline { top: clamp(2.8rem, 11vw, 3.8rem); font-size: 0.58rem; letter-spacing: 0.28em; }
 }

@@ -1,7 +1,14 @@
 export default function Methodology() {
   return (
-    <section className="methodology-section" aria-label="Methodology">
-      <h2 className="section-heading">Methodology</h2>
+    <section className="methodology-section" aria-label="How we count">
+      <p className="methodology-eyebrow">
+        <span className="methodology-eyebrow-line" aria-hidden="true" />
+        The quiet print
+      </p>
+      <h2 className="methodology-title">
+        <span className="methodology-title-heavy">How we count.</span>
+        <span className="methodology-title-soft">Plainly stated.</span>
+      </h2>
       <div className="methodology-body">
         <p>
           shhheth records every deposit that entered a privacy protocol on
