@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.turbo/
+.vercel/
+.DS_Store
+.env
+.env.local
+
+# subgraph build artifacts
+subgraph/build/
+subgraph/generated/

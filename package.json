@@ -1,0 +1,14 @@
+{
+  "name": "shhheth",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Live counter of all ETH ever shielded in Ethereum privacy protocols",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "subgraph:codegen": "pnpm --filter subgraph codegen",
+    "subgraph:build": "pnpm --filter subgraph build",
+    "subgraph:deploy": "pnpm --filter subgraph deploy"
+  },
+  "packageManager": "pnpm@10.17.1"
+}

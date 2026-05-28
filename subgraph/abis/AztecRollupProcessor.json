@@ -1,0 +1,12 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "uint256", "name": "assetId",          "type": "uint256" },
+      { "indexed": true,  "internalType": "address", "name": "depositorAddress", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "depositValue",     "type": "uint256" }
+    ],
+    "name": "Deposit",
+    "type": "event"
+  }
+]
