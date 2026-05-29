@@ -824,7 +824,7 @@ a { color: inherit; text-decoration: none; }
     gap: clamp(1.6rem, 4vh, 2.4rem);
     /* Shorter screen so the digit row + sublabel + bar all fit comfortably
      * within an iPhone 14 / Pro / Plus viewport without scroll-bleed. */
-    --screen-h: clamp(15rem, 44svh, 24rem);
+    --screen-h: clamp(11rem, 34svh, 17rem);
   }
 
   .hero-shhh { max-width: 100%; }

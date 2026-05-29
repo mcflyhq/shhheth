@@ -144,7 +144,7 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
                 r="46"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
