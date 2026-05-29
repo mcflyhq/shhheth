@@ -1,0 +1,12 @@
+type Global @entity(immutable: false) {
+  id: ID!
+  totalShieldedETH: BigInt! # cumulative all-time ETH deposited into Aztec Connect shielding (monotonic, only increases)
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type DailyInflow @entity(immutable: false) {
+  id: ID! # day since epoch (block.timestamp / 86400)
+  date: String! # YYYY-MM-DD for convenience
+  shieldedETH: BigInt! # ETH shielded on this day via Aztec Connect
+}

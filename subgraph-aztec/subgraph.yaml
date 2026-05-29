@@ -1,0 +1,25 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: AztecConnect
+    network: mainnet
+    source:
+      address: "0xFF1F2B4ADb9dF6FC8eAFecDcbF96A2B351680455"
+      abi: RollupProcessor
+      startBlock: 14923081
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Global
+        - DailyInflow
+      abis:
+        - name: RollupProcessor
+          file: ./abis/RollupProcessor.json
+      eventHandlers:
+        - event: Deposit(indexed uint256,indexed address,uint256)
+          handler: handleDeposit
+      file: ./src/rollup.ts

@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
-    "subgraph:codegen": "pnpm --filter subgraph codegen",
-    "subgraph:build": "pnpm --filter subgraph build",
-    "subgraph:deploy": "pnpm --filter subgraph deploy"
+    "subgraph:codegen": "pnpm --filter \"subgraph-*\" codegen",
+    "subgraph:build": "pnpm --filter \"subgraph-*\" build",
+    "subgraph:deploy:aztec": "pnpm --filter subgraph-aztec deploy",
+    "subgraph:deploy:tornado": "pnpm --filter subgraph-tornado deploy",
+    "subgraph:deploy:railgun": "pnpm --filter subgraph-railgun deploy",
+    "subgraph:deploy:0xbow": "pnpm --filter subgraph-0xbow deploy"
   },
   "packageManager": "pnpm@10.17.1"
 }

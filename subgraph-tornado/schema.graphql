@@ -1,0 +1,18 @@
+type TornadoGlobal @entity(immutable: false) {
+  id: ID!
+  totalShieldedETH: BigInt! # cumulative across all Tornado ETH pools
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type TornadoDailyInflow @entity(immutable: false) {
+  id: ID! # day since epoch
+  date: String!
+  shieldedETH: BigInt!
+}
+
+type TornadoPoolContribution @entity(immutable: false) {
+  id: ID! # pool address or denomination label
+  pool: String! # "0.1", "1", "10", "100"
+  totalShieldedETH: BigInt!
+}

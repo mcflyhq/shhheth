@@ -7,19 +7,32 @@ This is a cumulative all-time deposit count, not TVL — withdrawals do not redu
 ## Workspaces
 
 - `web/` — Next.js 16 dashboard (the odometer)
-- `subgraph/` — Goldsky subgraph indexing privacy-protocol deposits
+- `subgraph-aztec/` — Aztec Connect shielded ETH
+- `subgraph-tornado/` — Tornado Cash ETH pools
+- `subgraph-railgun/` — Railgun shielded ETH
+- `subgraph-0xbow/` — 0xbow Privacy Pools ETH
 
-## V0 protocols
+One immutable subgraph deployment per protocol, so adding or redeploying one
+never re-indexes the others.
 
-- **Aztec Connect** — `0xFF1F2B4ADb9dF6FC8eAFecDcbF96A2B351680455` (sunset Mar 2024)
-- **Privacy Pools** ETH pool — `0xF241d57C6DebAe225c0F2e6eA1529373C9A9C9fB`
+## Live subgraphs
+
+Each package builds the exact deployment its Goldsky endpoint serves (see
+`web/src/lib/protocols.ts`):
+
+| Protocol | Package | Goldsky deployment | Global entity |
+|----------|---------|--------------------|---------------|
+| Aztec Connect (sunset) | `subgraph-aztec/` | `shhhethgrok/0.1.0` | `Global` |
+| Tornado Cash | `subgraph-tornado/` | `shhhethgrok-tornado` | `TornadoGlobal` |
+| Railgun | `subgraph-railgun/` | `shhheth-railgun/2.0.0` | `RailgunGlobal` |
+| 0xbow Privacy Pools | `subgraph-0xbow/` | `shhheth-0xbow/1.0.0` | `BowGlobal` |
 
 ## Develop
 
 ```bash
 pnpm install
-pnpm dev                  # web
-pnpm subgraph:codegen     # regenerate subgraph types after schema/abi changes
-pnpm subgraph:build       # compile AssemblyScript to wasm
-pnpm subgraph:deploy      # goldsky subgraph deploy
+pnpm dev                       # web
+pnpm subgraph:codegen          # regenerate types for every subgraph package
+pnpm subgraph:build            # compile every subgraph to wasm
+pnpm subgraph:deploy:aztec     # deploy one protocol (also :tornado, :railgun, :0xbow)
 ```

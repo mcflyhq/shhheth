@@ -1,0 +1,15 @@
+{
+  "name": "subgraph-tornado",
+  "version": "0.1.0",
+  "private": true,
+  "description": "shhheth subgraph — cumulative all-time shielded ETH across Tornado Cash ETH pools (deploys to shhhethgrok-tornado)",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "goldsky subgraph deploy shhhethgrok-tornado/0.1.0 --path ."
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.97.0",
+    "@graphprotocol/graph-ts": "^0.38.0"
+  }
+}

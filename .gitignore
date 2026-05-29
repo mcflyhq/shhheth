@@ -7,5 +7,5 @@ node_modules/
 .env.local
 
 # subgraph build artifacts
-subgraph/build/
-subgraph/generated/
+subgraph-*/build/
+subgraph-*/generated/

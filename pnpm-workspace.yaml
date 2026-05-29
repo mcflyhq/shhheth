@@ -1,6 +1,7 @@
 packages:
   - web
-  - subgraph
+  - subgraph-aztec
+  - subgraph-tornado
   - subgraph-railgun
   - subgraph-0xbow
 
