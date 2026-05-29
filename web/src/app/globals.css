@@ -376,6 +376,77 @@ a { color: inherit; text-decoration: none; }
   color: rgba(10, 13, 18, 0.5);
 }
 
+.screen-delta {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.72rem, 1vw, 0.95rem);
+  letter-spacing: 0.06em;
+  color: #1f9d6b;
+}
+
+.screen-delta-caret {
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.screen-delta-value {
+  font-feature-settings: "tnum";
+}
+
+.screen-delta-sep,
+.screen-delta-window {
+  color: rgba(10, 13, 18, 0.42);
+  font-size: 0.86em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.screen-delta-flat {
+  color: rgba(10, 13, 18, 0.42);
+}
+
+.screen-delta-flat .screen-delta-value {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.share-x {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+  padding: 0.5rem 0.95rem;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.6rem, 0.8vw, 0.76rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(10, 13, 18, 0.04);
+  border: 1px solid rgba(10, 13, 18, 0.16);
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.share-x:hover {
+  background: rgba(10, 13, 18, 0.08);
+  border-color: rgba(10, 13, 18, 0.34);
+  transform: translateY(-1px);
+}
+
+.share-x svg {
+  width: 0.92em;
+  height: 0.92em;
+  fill: currentColor;
+}
+
 .live-dot {
   display: inline-block;
   width: 0.42rem;

@@ -25,9 +25,10 @@ The page will hot-reload. Data is fetched client-side from the public Goldsky en
 
 This frontend is deliberately thin. All numbers come from:
 
-`https://api.goldsky.com/api/public/project_cmkci36i9nujr01tz05uk6gfc/subgraphs/shhhethgrok/0.1.0/gn`
-
-(See sibling repo `shhhethgrok` for the narrow "ETH only" AssemblyScript subgraph.)
+Goldsky subgraph endpoints, one per protocol — see `web/src/lib/protocols.ts`
+for the full list. The AssemblyScript sources live in this repo under the
+`subgraph-*/` packages (`subgraph-aztec`, `subgraph-tornado`, `subgraph-railgun`,
+`subgraph-0xbow`).
 
 ## Deploy
 

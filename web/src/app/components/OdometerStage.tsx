@@ -11,16 +11,34 @@ import {
 } from "react";
 import BraunDigits from "./BraunDigits";
 import BreakdownSegment from "./BreakdownSegment";
+import ShareButton from "./ShareButton";
 import type { DisplayProtocol } from "@/lib/subgraph";
+
+type WeekDelta = { formatted: string; zero: boolean };
+
+type DeltaView = { flat: boolean; primary: string; secondary: string };
 
 type Props = {
   formattedTotal: string;
   isLive: boolean;
   protocols: DisplayProtocol[];
+  weekDelta: WeekDelta | null;
+  windowDays: number;
+  shareText: string;
+  shareUrl: string;
   children?: React.ReactNode;
 };
 
-export default function OdometerStage({ formattedTotal, isLive, protocols, children }: Props) {
+export default function OdometerStage({
+  formattedTotal,
+  isLive,
+  protocols,
+  weekDelta,
+  windowDays,
+  shareText,
+  shareUrl,
+  children,
+}: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [cursorInStage, setCursorInStage] = useState(false);
   const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
@@ -100,6 +118,25 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
     ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
     : "Has been shielded across privacy protocols";
 
+  const windowLabel = `last ${windowDays} days`;
+  const deltaView: DeltaView | null = useMemo(() => {
+    if (hovered) {
+      if (hovered.formattedDelta === null) return null;
+      const flat = hovered.deltaWei === "0";
+      const secondary =
+        !flat && hovered.weekSharePct !== null
+          ? `${hovered.weekSharePct.toFixed(0)}% of this week`
+          : windowLabel;
+      return { flat, primary: flat ? "flat" : `${hovered.formattedDelta} ETH`, secondary };
+    }
+    if (!weekDelta) return null;
+    return {
+      flat: weekDelta.zero,
+      primary: weekDelta.zero ? "flat" : `${weekDelta.formatted} ETH`,
+      secondary: windowLabel,
+    };
+  }, [hovered, weekDelta, windowLabel]);
+
   return (
     <section
       ref={stageRef}
@@ -161,6 +198,17 @@ export default function OdometerStage({ formattedTotal, isLive, protocols, child
           <div className="screen-digits">
             <BraunDigits value={displayValue} />
             <p className="screen-sublabel">{sublabel}</p>
+            {deltaView && (
+              <p className={`screen-delta${deltaView.flat ? " screen-delta-flat" : ""}`}>
+                {!deltaView.flat && (
+                  <span className="screen-delta-caret" aria-hidden="true">▲</span>
+                )}
+                <span className="screen-delta-value">{deltaView.primary}</span>
+                <span className="screen-delta-sep" aria-hidden="true">·</span>
+                <span className="screen-delta-window">{deltaView.secondary}</span>
+              </p>
+            )}
+            <ShareButton text={shareText} url={shareUrl} />
           </div>
 
           {protocols.length > 0 && (

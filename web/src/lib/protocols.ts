@@ -1,10 +1,12 @@
 /**
  * Per-protocol subgraph configuration.
  *
- * Adding a new protocol is one entry here + one adapter. Each protocol gets
- * its own immutable subgraph deployment, so adding never re-indexes the others.
+ * Adding a new protocol is one entry here. Each protocol gets its own immutable
+ * subgraph deployment, so adding never re-indexes the others. Every subgraph
+ * exposes the same global-counter shape ({ totalShieldedETH, lastUpdatedBlock }),
+ * differing only in the root field name — captured by `entity`.
  *
- * Live protocols MUST provide endpoint + query + adapt.
+ * Live/sunset protocols MUST provide endpoint + entity.
  * Soon protocols omit them and render as scaffolded rows.
  */
 
@@ -15,10 +17,11 @@ export type ProtocolResult = {
   name: string;
   status: Exclude<ProtocolStatus, "soon">;
   totalETH: bigint;
+  /** Shielded inflow over the rolling window. `null` when the historical
+   *  baseline could not be resolved (query failed) — distinct from a real 0. */
+  deltaETH: bigint | null;
   lastUpdatedBlock: bigint;
 };
-
-type Adapter = (raw: unknown) => Pick<ProtocolResult, "totalETH" | "lastUpdatedBlock"> | null;
 
 export type ProtocolConfig = {
   id: string;
@@ -27,50 +30,10 @@ export type ProtocolConfig = {
   /** Accent hex used by the breakdown segment + any per-protocol UI. */
   color: string;
   endpoint?: string;
-  query?: string;
-  adapt?: Adapter;
-};
-
-const aztecAdapter: Adapter = (raw) => {
-  const data = raw as { global: { totalShieldedETH: string; lastUpdatedBlock: string } | null };
-  if (!data.global) return null;
-  return {
-    totalETH: BigInt(data.global.totalShieldedETH),
-    lastUpdatedBlock: BigInt(data.global.lastUpdatedBlock),
-  };
-};
-
-const tornadoAdapter: Adapter = (raw) => {
-  const data = raw as {
-    tornadoGlobal: { totalShieldedETH: string; lastUpdatedBlock: string } | null;
-  };
-  if (!data.tornadoGlobal) return null;
-  return {
-    totalETH: BigInt(data.tornadoGlobal.totalShieldedETH),
-    lastUpdatedBlock: BigInt(data.tornadoGlobal.lastUpdatedBlock),
-  };
-};
-
-const railgunAdapter: Adapter = (raw) => {
-  const data = raw as {
-    railgunGlobal: { totalShieldedETH: string; lastUpdatedBlock: string } | null;
-  };
-  if (!data.railgunGlobal) return null;
-  return {
-    totalETH: BigInt(data.railgunGlobal.totalShieldedETH),
-    lastUpdatedBlock: BigInt(data.railgunGlobal.lastUpdatedBlock),
-  };
-};
-
-const bowAdapter: Adapter = (raw) => {
-  const data = raw as {
-    bowGlobal: { totalShieldedETH: string; lastUpdatedBlock: string } | null;
-  };
-  if (!data.bowGlobal) return null;
-  return {
-    totalETH: BigInt(data.bowGlobal.totalShieldedETH),
-    lastUpdatedBlock: BigInt(data.bowGlobal.lastUpdatedBlock),
-  };
+  /** Root query field for this subgraph's global counter, e.g. "bowGlobal". */
+  entity?: string;
+  /** Global-counter entity id. Defaults to "1". */
+  entityId?: string;
 };
 
 const GOLDSKY_BASE =
@@ -83,8 +46,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     status: "sunset",
     color: "#3b5bff",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok/0.1.0/gn`,
-    query: `{ global(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
-    adapt: aztecAdapter,
+    entity: "global",
   },
   {
     id: "tornado",
@@ -92,8 +54,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     status: "live",
     color: "#36c5b0",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok-tornado/0.1.0/gn`,
-    query: `{ tornadoGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
-    adapt: tornadoAdapter,
+    entity: "tornadoGlobal",
   },
   {
     id: "railgun",
@@ -101,8 +62,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     status: "live",
     color: "#ff8a5b",
     endpoint: `${GOLDSKY_BASE}/shhheth-railgun/2.0.0/gn`,
-    query: `{ railgunGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
-    adapt: railgunAdapter,
+    entity: "railgunGlobal",
   },
   {
     id: "0xbow",
@@ -110,7 +70,6 @@ export const PROTOCOLS: ProtocolConfig[] = [
     status: "live",
     color: "#9b6cff",
     endpoint: `${GOLDSKY_BASE}/shhheth-0xbow/1.0.0/gn`,
-    query: `{ bowGlobal(id: "1") { totalShieldedETH lastUpdatedBlock } }`,
-    adapt: bowAdapter,
+    entity: "bowGlobal",
   },
 ];

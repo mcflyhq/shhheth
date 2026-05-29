@@ -36,7 +36,7 @@ const dseg7 = localFont({
   src: [{ path: "./fonts/DSEG7Classic-Bold.woff2", weight: "700", style: "normal" }],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shhheth.xyz";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shhheth.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
