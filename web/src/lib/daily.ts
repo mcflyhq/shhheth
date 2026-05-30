@@ -1,3 +1,7 @@
+import { cache } from "react";
+import { request } from "graphql-request";
+import { PROTOCOLS, type ProtocolConfig } from "./protocols";
+
 export type RawDay = { date: number; wei: bigint };
 
 export type DayPoint = {
@@ -89,3 +93,41 @@ export function weeklyBuckets(series: DailySeries): DailySeries {
   }
   return { days: out };
 }
+
+const PAGE = 1000;
+
+type DailyRow = { date: string; shieldedETH: string };
+
+function dailyQuery(field: string, skip: number): string {
+  return `{ rows: ${field}(first: ${PAGE}, skip: ${skip}, orderBy: date, orderDirection: asc) { date shieldedETH } }`;
+}
+
+async function fetchProtocolDays(config: ProtocolConfig): Promise<RawDay[]> {
+  if (!config.endpoint || !config.dailyField || config.status === "soon") return [];
+  const out: RawDay[] = [];
+  try {
+    for (let skip = 0; ; skip += PAGE) {
+      const raw = (await request(
+        config.endpoint,
+        dailyQuery(config.dailyField, skip),
+      )) as { rows: DailyRow[] };
+      for (const r of raw.rows) out.push({ date: Number(r.date), wei: BigInt(r.shieldedETH) });
+      if (raw.rows.length < PAGE) break;
+    }
+  } catch (error) {
+    console.error(`[shhheth] ${config.id} daily query failed:`, error);
+    return [];
+  }
+  return out;
+}
+
+/** Per-request memoized aligned daily-inflow series across every live protocol. */
+export const getDailySeries = cache(async (): Promise<DailySeries> => {
+  const settled = await Promise.allSettled(PROTOCOLS.map(fetchProtocolDays));
+  const byProtocol: Record<string, RawDay[]> = {};
+  PROTOCOLS.forEach((p, i) => {
+    const r = settled[i];
+    byProtocol[p.id] = r.status === "fulfilled" ? r.value : [];
+  });
+  return alignByDate(byProtocol);
+});
