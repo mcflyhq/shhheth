@@ -18,7 +18,7 @@ import type { DisplayProtocol } from "@/lib/subgraph";
 import type { RangeView } from "../page";
 import type { RangeKey } from "@/lib/daily";
 
-type DeltaView = { flat: boolean; primary: string; secondary: string };
+type DeltaView = { tone: "up" | "flat" | "day"; primary: string };
 
 type Props = {
   formattedTotal: string;
@@ -41,6 +41,7 @@ export default function OdometerStage({
 }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [activeRange, setActiveRange] = useState<RangeKey>("7d");
+  const [dayHover, setDayHover] = useState<{ label: string; total: number } | null>(null);
   const view = ranges.find((r) => r.key === activeRange) ?? ranges[0];
   const order = ranges[0].points[0]?.values.map((v) => ({ id: v.id, color: v.color })) ?? [];
   const [cursorInStage, setCursorInStage] = useState(false);
@@ -121,22 +122,19 @@ export default function OdometerStage({
     ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
     : "Has been shielded across privacy protocols";
 
-  const deltaView: DeltaView | null = useMemo(() => {
-    if (hovered) {
-      const b = view.byProtocol[hovered.id];
-      if (!b) return null;
-      return {
-        flat: b.zero,
-        primary: b.zero ? "flat" : `${b.formatted} ETH`,
-        secondary: !b.zero && b.sharePct !== null ? `${b.sharePct.toFixed(0)}% of ${view.label}` : view.label,
-      };
+  // Single value slot under the digits: a hovered chart bar shows that day's
+  // date + inflow; otherwise the selected period's delta (aggregate, or the
+  // hovered protocol's). The range toggle — not text — carries the period.
+  const deltaView: DeltaView = useMemo(() => {
+    if (dayHover) {
+      return { tone: "day", primary: `${dayHover.label} · ${dayHover.total.toFixed(1)} ETH` };
     }
-    return {
-      flat: view.delta.zero,
-      primary: view.delta.zero ? "flat" : `${view.delta.formatted} ETH`,
-      secondary: view.label,
-    };
-  }, [hovered, view]);
+    const d = hovered ? view.byProtocol[hovered.id] : view.delta;
+    if (!d) return { tone: "flat", primary: "flat" };
+    return d.zero
+      ? { tone: "flat", primary: "flat" }
+      : { tone: "up", primary: `${d.formatted} ETH` };
+  }, [dayHover, hovered, view]);
 
   return (
     <section
@@ -199,16 +197,19 @@ export default function OdometerStage({
           <div className="screen-digits">
             <BraunDigits value={displayValue} />
             <p className="screen-sublabel">{sublabel}</p>
-            {deltaView && (
-              <p className={`screen-delta${deltaView.flat ? " screen-delta-flat" : ""}`}>
-                {!deltaView.flat && (
+            <div className="screen-context">
+              <p className={`screen-delta screen-delta-${deltaView.tone}`}>
+                {deltaView.tone === "up" && (
                   <span className="screen-delta-caret" aria-hidden="true">▲</span>
                 )}
                 <span className="screen-delta-value">{deltaView.primary}</span>
-                <span className="screen-delta-sep" aria-hidden="true">·</span>
-                <span className="screen-delta-window">{deltaView.secondary}</span>
               </p>
-            )}
+              <RangeToggle
+                ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
+                active={activeRange}
+                onChange={setActiveRange}
+              />
+            </div>
             <ShareButton text={shareText} url={shareUrl} />
           </div>
 
@@ -238,17 +239,13 @@ export default function OdometerStage({
           )}
 
           <div className="screen-chart">
-            <RangeToggle
-              ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
-              active={activeRange}
-              onChange={setActiveRange}
-            />
             <InflowChart
               points={view.points}
               mode={view.mode}
               order={order}
               hoveredId={hoveredId}
               onHover={setHoveredId}
+              onDayHover={setDayHover}
             />
           </div>
         </div>

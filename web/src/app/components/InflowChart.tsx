@@ -10,6 +10,8 @@ type Props = {
   /** Shared protocol hover (breakdown segment / area band). */
   hoveredId: string | null;
   onHover: (id: string | null) => void;
+  /** Hovered day (bars mode) — surfaced in the headline, not in the chart. */
+  onDayHover: (day: { label: string; total: number } | null) => void;
 };
 
 const H = 60; // viewBox height units
@@ -17,7 +19,7 @@ const H = 60; // viewBox height units
 const GREY = "rgba(10, 13, 18, 0.16)";
 const GREY_ALT = "rgba(10, 13, 18, 0.10)";
 
-function InflowChart({ points, mode, order, hoveredId, onHover }: Props) {
+function InflowChart({ points, mode, order, hoveredId, onHover, onDayHover }: Props) {
   const [dayHover, setDayHover] = useState<number | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -42,17 +44,15 @@ function InflowChart({ points, mode, order, hoveredId, onHover }: Props) {
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const frac = (e.clientX - rect.left) / rect.width;
-    setDayHover(Math.min(n - 1, Math.max(0, Math.floor(frac * n))));
+    const i = Math.min(n - 1, Math.max(0, Math.floor(frac * n)));
+    setDayHover(i);
+    onDayHover({ label: points[i].label, total: points[i].total });
   };
   const handleLeave = () => {
     setDayHover(null);
+    onDayHover(null);
     if (mode === "area") onHover(null);
   };
-
-  const caption =
-    mode === "bars" && dayHover !== null
-      ? `${points[dayHover].label} · ${points[dayHover].total.toFixed(1)} ETH`
-      : " ";
 
   return (
     <div
@@ -61,7 +61,6 @@ function InflowChart({ points, mode, order, hoveredId, onHover }: Props) {
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
     >
-      <p className="inflow-chart-caption" aria-live="polite">{caption}</p>
       <svg
         className="inflow-chart-svg"
         viewBox={`0 0 100 ${H}`}

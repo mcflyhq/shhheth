@@ -309,9 +309,10 @@ a { color: inherit; text-decoration: none; }
   align-items: stretch;
   justify-content: space-between;
   gap: clamp(0.8rem, 1.6vh, 1.2rem);
-  padding: clamp(1.2rem, 2.4vw, 2.4rem) clamp(1.2rem, 2.4vw, 2.4rem) clamp(0.7rem, 1.6vw, 1.2rem);
-  /* The chart is pinned to the bottom; clip so nothing ever spills past the
-   * rounded frame onto the cards below. */
+  /* No bottom padding — the chart's bars sit flush on the screen's bottom edge.
+   * Side padding keeps the bars clear of the rounded corners. */
+  padding: clamp(1.2rem, 2.4vw, 2.4rem) clamp(1.2rem, 2.4vw, 2.4rem) 0;
+  border-radius: clamp(1.1rem, 2vw, 1.65rem);
   overflow: hidden;
   pointer-events: none;
   color: var(--ink);
@@ -379,6 +380,15 @@ a { color: inherit; text-decoration: none; }
   color: rgba(10, 13, 18, 0.5);
 }
 
+/* One row under the digits: the value slot + the period selector. */
+.screen-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.85rem;
+}
+
 .screen-delta {
   margin: 0;
   display: inline-flex;
@@ -389,6 +399,14 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(0.72rem, 1vw, 0.95rem);
   letter-spacing: 0.06em;
   color: #1f9d6b;
+}
+
+/* hovering a chart bar shows that day's date + inflow here, in ink */
+.screen-delta-day {
+  color: var(--ink);
+}
+.screen-delta-day .screen-delta-value {
+  font-variant-numeric: tabular-nums;
 }
 
 .screen-delta-caret {
@@ -692,21 +710,6 @@ a { color: inherit; text-decoration: none; }
   stroke: rgba(248, 251, 255, 0.5);
   stroke-width: 0.25;
   vector-effect: non-scaling-stroke;
-}
-
-/* Caption is an always-present reserved line above the bars — never empty in
- * layout terms, so hovering a bar swaps only the text and never changes the
- * chart's height (and therefore never nudges the fixed-height screen). */
-.inflow-chart-caption {
-  margin: 0;
-  min-height: 1.1em;
-  pointer-events: none;
-  font-family: var(--mono);
-  font-size: clamp(0.56rem, 0.7vw, 0.68rem);
-  letter-spacing: 0.1em;
-  color: rgba(10, 13, 18, 0.62);
-  text-align: center;
-  white-space: nowrap;
 }
 
 .sparkline {
