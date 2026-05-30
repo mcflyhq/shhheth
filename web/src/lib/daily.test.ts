@@ -5,6 +5,7 @@ import {
   cumulative,
   weeklyBuckets,
   lastN,
+  toChartPoints,
   type RawDay,
 } from "./daily";
 
@@ -70,5 +71,22 @@ describe("weeklyBuckets", () => {
     // buckets: {1..6}->wk0 end date6, {7..13}->wk1 end date13, {14,15}->wk2 end date15
     expect(w.days.map((d) => d.date)).toEqual([6, 13, 15]);
     expect(w.days[2].total).toBe(wei(15n)); // cumulative through day 15
+  });
+});
+
+describe("toChartPoints", () => {
+  it("converts wei day points to ordered ETH segments with labels", () => {
+    const s = alignByDate({ a: [{ date: 20000, wei: wei(2n) }], b: [{ date: 20000, wei: wei(3n) }] });
+    const pts = toChartPoints(s, [
+      { id: "a", color: "#111" },
+      { id: "b", color: "#222" },
+    ]);
+    expect(pts).toHaveLength(1);
+    expect(pts[0].total).toBeCloseTo(5);
+    expect(pts[0].values).toEqual([
+      { id: "a", color: "#111", eth: 2 },
+      { id: "b", color: "#222", eth: 3 },
+    ]);
+    expect(typeof pts[0].label).toBe("string");
   });
 });

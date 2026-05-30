@@ -94,6 +94,37 @@ export function weeklyBuckets(series: DailySeries): DailySeries {
   return { days: out };
 }
 
+const WEI = 10 ** 18;
+
+export type ChartSegment = { id: string; color: string; eth: number };
+export type ChartPoint = { label: string; values: ChartSegment[]; total: number };
+
+export type StackOrder = { id: string; color: string }[];
+
+function dayLabel(dayNumber: number): string {
+  const d = new Date(dayNumber * 86400 * 1000);
+  return d.toISOString().slice(5, 10); // MM-DD
+}
+
+export function toChartPoints(series: DailySeries, order: StackOrder): ChartPoint[] {
+  return series.days.map((d) => {
+    const values = order.map((o) => ({
+      id: o.id,
+      color: o.color,
+      eth: Number(d.perProtocol[o.id] ?? 0n) / WEI,
+    }));
+    return { label: dayLabel(d.date), values, total: Number(d.total) / WEI };
+  });
+}
+
+export type RangeKey = "7d" | "30d" | "90d" | "all";
+export const RANGES: { key: RangeKey; label: string; days: number }[] = [
+  { key: "7d", label: "last 7 days", days: 7 },
+  { key: "30d", label: "last 30 days", days: 30 },
+  { key: "90d", label: "last 90 days", days: 90 },
+  { key: "all", label: "all time", days: Infinity },
+];
+
 const PAGE = 1000;
 
 type DailyRow = { date: string; shieldedETH: string };
