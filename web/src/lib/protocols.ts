@@ -34,6 +34,8 @@ export type ProtocolConfig = {
   entity?: string;
   /** Global-counter entity id. Defaults to "1". */
   entityId?: string;
+  /** Root query field for this subgraph's daily-inflow series, e.g. "bowDailyInflows". */
+  dailyField?: string;
 };
 
 const GOLDSKY_BASE =
@@ -47,6 +49,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     color: "#3b5bff",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok/0.1.0/gn`,
     entity: "global",
+    dailyField: "dailyInflows",
   },
   {
     id: "tornado",
@@ -55,6 +58,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     color: "#36c5b0",
     endpoint: `${GOLDSKY_BASE}/shhhethgrok-tornado/0.1.0/gn`,
     entity: "tornadoGlobal",
+    dailyField: "tornadoDailyInflows",
   },
   {
     id: "railgun",
@@ -63,6 +67,7 @@ export const PROTOCOLS: ProtocolConfig[] = [
     color: "#ff8a5b",
     endpoint: `${GOLDSKY_BASE}/shhheth-railgun/2.0.0/gn`,
     entity: "railgunGlobal",
+    dailyField: "railgunDailyInflows",
   },
   {
     id: "0xbow",
@@ -71,5 +76,6 @@ export const PROTOCOLS: ProtocolConfig[] = [
     color: "#9b6cff",
     endpoint: `${GOLDSKY_BASE}/shhheth-0xbow/1.0.0/gn`,
     entity: "bowGlobal",
+    dailyField: "bowDailyInflows",
   },
 ];
