@@ -638,6 +638,33 @@ a { color: inherit; text-decoration: none; }
   gap: clamp(0.7rem, 1.2vw, 1rem);
 }
 
+.range-toggle {
+  pointer-events: auto;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(10, 13, 18, 0.05);
+  border: 1px solid rgba(10, 13, 18, 0.12);
+}
+.range-toggle-btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: clamp(0.56rem, 0.72vw, 0.7rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(10, 13, 18, 0.5);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.range-toggle-btn.is-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 @media (max-width: 720px) {
   .protocol-grid { grid-template-columns: 1fr; }
 }
