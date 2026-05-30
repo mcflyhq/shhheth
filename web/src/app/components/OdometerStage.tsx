@@ -40,7 +40,8 @@ export default function OdometerStage({
   children,
 }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [activeRange, setActiveRange] = useState<RangeKey>("7d");
+  // 7d is a mobile-only option (hidden on desktop via CSS); default to 30d.
+  const [activeRange, setActiveRange] = useState<RangeKey>("30d");
   const [dayHover, setDayHover] = useState<{ label: string; total: number } | null>(null);
   const view = ranges.find((r) => r.key === activeRange) ?? ranges[0];
   const order = ranges[0].points[0]?.values.map((v) => ({ id: v.id, color: v.color })) ?? [];
@@ -194,36 +195,8 @@ export default function OdometerStage({
         <div className="screen-glow" />
         <div className="screen-surface" />
         <div className="screen-content">
-          <div className="screen-digits">
-            <BraunDigits value={displayValue} />
-            <p className="screen-sublabel">{sublabel}</p>
-            <div className="screen-context">
-              <p className={`screen-delta screen-delta-${deltaView.tone}`}>
-                {deltaView.tone === "up" && (
-                  <span className="screen-delta-caret" aria-hidden="true">▲</span>
-                )}
-                <span className="screen-delta-value">{deltaView.primary}</span>
-              </p>
-              <RangeToggle
-                ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
-                active={activeRange}
-                onChange={setActiveRange}
-              />
-            </div>
-            <ShareButton text={shareText} url={shareUrl} />
-          </div>
-
           {protocols.length > 0 && (
             <div className="breakdown">
-              <div className="breakdown-heading">
-                <span
-                  className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`}
-                  aria-hidden="true"
-                />
-                <span>Live aggregate</span>
-                <span className="breakdown-heading-sep" aria-hidden="true">·</span>
-                <span>updated every minute</span>
-              </div>
               <div className="screen-breakdown" role="group" aria-label="Per-protocol share of all-time shielded ETH">
                 {protocols.map((p) => (
                   <BreakdownSegment
@@ -235,16 +208,43 @@ export default function OdometerStage({
                   />
                 ))}
               </div>
+              <div className="breakdown-heading">
+                <span
+                  className={`live-dot ${isLive ? "live-dot-on" : "live-dot-off"}`}
+                  aria-hidden="true"
+                />
+                <span>Live aggregate</span>
+                <span className="breakdown-heading-sep" aria-hidden="true">·</span>
+                <span>updated every minute</span>
+              </div>
             </div>
           )}
+
+          <div className="screen-digits">
+            <BraunDigits value={displayValue} />
+            <p className="screen-sublabel">{sublabel}</p>
+            <p className={`screen-delta screen-delta-${deltaView.tone}`}>
+              {deltaView.tone === "up" && (
+                <span className="screen-delta-caret" aria-hidden="true">▲</span>
+              )}
+              <span className="screen-delta-value">{deltaView.primary}</span>
+            </p>
+          </div>
+
+          <div className="screen-actions">
+            <RangeToggle
+              ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
+              active={activeRange}
+              onChange={setActiveRange}
+            />
+            <ShareButton text={shareText} url={shareUrl} />
+          </div>
 
           <div className="screen-chart">
             <InflowChart
               points={view.points}
-              mode={view.mode}
               order={order}
               hoveredId={hoveredId}
-              onHover={setHoveredId}
               onDayHover={setDayHover}
             />
           </div>

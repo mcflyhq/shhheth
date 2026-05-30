@@ -307,11 +307,11 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between;
-  gap: clamp(0.8rem, 1.6vh, 1.2rem);
-  /* No bottom padding — the chart's bars sit flush on the screen's bottom edge.
-   * Side padding keeps the bars clear of the rounded corners. */
-  padding: clamp(1.2rem, 2.4vw, 2.4rem) clamp(1.2rem, 2.4vw, 2.4rem) 0;
+  gap: 0;
+  /* Zero padding: the breakdown bar (top) and the chart (bottom) bleed to the
+   * screen edges; the digits + actions supply their own horizontal padding.
+   * border-radius + overflow round the breakdown's top + the chart's bottom. */
+  padding: 0;
   border-radius: clamp(1.1rem, 2vw, 1.65rem);
   overflow: hidden;
   pointer-events: none;
@@ -324,8 +324,18 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(1rem, 2.2vh, 1.7rem);
+  gap: clamp(0.7rem, 1.8vh, 1.3rem);
+  padding: clamp(0.6rem, 1.6vh, 1rem) clamp(1.2rem, 2.4vw, 2.4rem);
   min-height: 0;
+}
+
+.screen-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0 clamp(1.2rem, 2.4vw, 2.4rem) clamp(0.55rem, 1.4vh, 0.95rem);
+  pointer-events: auto;
 }
 
 .braun-digits {
@@ -380,15 +390,6 @@ a { color: inherit; text-decoration: none; }
   color: rgba(10, 13, 18, 0.5);
 }
 
-/* One row under the digits: the value slot + the period selector. */
-.screen-context {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem 0.85rem;
-}
-
 .screen-delta {
   margin: 0;
   display: inline-flex;
@@ -416,14 +417,6 @@ a { color: inherit; text-decoration: none; }
 
 .screen-delta-value {
   font-feature-settings: "tnum";
-}
-
-.screen-delta-sep,
-.screen-delta-window {
-  color: rgba(10, 13, 18, 0.42);
-  font-size: 0.86em;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 
 .screen-delta-flat {
@@ -495,7 +488,9 @@ a { color: inherit; text-decoration: none; }
 .breakdown {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  gap: clamp(0.4rem, 1vh, 0.65rem);
+  padding-bottom: clamp(0.2rem, 0.6vh, 0.4rem);
   pointer-events: auto;
 }
 
@@ -523,10 +518,11 @@ a { color: inherit; text-decoration: none; }
 .screen-breakdown {
   display: flex;
   width: 100%;
-  height: clamp(2.4rem, 4.6vh, 2.9rem);
-  border-radius: 0.5rem;
+  height: clamp(2.4rem, 4.8vh, 3rem);
+  /* full-bleed at the top of the screen — the screen's overflow:hidden +
+   * border-radius rounds the top corners; just a hairline along the bottom. */
   overflow: hidden;
-  border: 1px solid rgba(10, 13, 18, 0.12);
+  border-bottom: 1px solid rgba(10, 13, 18, 0.12);
 }
 
 .breakdown-segment {
@@ -685,31 +681,49 @@ a { color: inherit; text-decoration: none; }
   background: var(--ink);
   color: var(--paper);
 }
+/* 7d is mobile-only; hide it on the wider screens. */
+@media (min-width: 641px) {
+  .range-toggle-btn-7d { display: none; }
+}
 
+/* Contiguous, full-bleed stacked bars (HTML). Quiet ink-wash by default; a
+ * hovered column / protocol band picks up the breakdown bar's color + dot
+ * texture. No gaps, no side padding — the bars fill the whole width and sit
+ * flush on the screen's bottom edge. */
 .inflow-chart {
   pointer-events: auto;
-  width: 100%;
   display: flex;
-  flex-direction: column;
-}
-.inflow-chart-svg {
+  align-items: flex-end;
   width: 100%;
-  height: clamp(44px, 9svh, 84px);
-  display: block;
-  /* bars/area sit flush to the bottom inner edge of the screen */
+  height: clamp(46px, 9svh, 88px);
 }
-.inflow-chart-empty .inflow-chart-svg { display: none; }
-
-/* Quiet-by-default, color-on-hover — same language as the breakdown bar. */
-.inflow-bar,
-.inflow-area {
-  transition: fill 200ms ease;
+.inflow-chart-empty { display: none; }
+.inflow-col {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
 }
-/* hairline separators so the stacked grey bands stay legible at rest */
-.inflow-area {
-  stroke: rgba(248, 251, 255, 0.5);
-  stroke-width: 0.25;
-  vector-effect: non-scaling-stroke;
+.inflow-seg {
+  width: 100%;
+  background-color: rgba(10, 13, 18, 0.16);
+  transition: background-color 200ms ease;
+}
+.inflow-seg.is-alt {
+  background-color: rgba(10, 13, 18, 0.10);
+}
+.inflow-seg.is-on {
+  background-color: var(--seg-color, #3b5bff);
+  /* same 3×3 white-dot bitmap as the breakdown bar's active segment */
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.42) 0 0.55px,
+    transparent 0.75px
+  );
+  background-size: 3px 3px;
+  background-repeat: repeat;
 }
 
 .sparkline {
@@ -733,12 +747,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .screen-chart {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
   width: 100%;
-  margin-top: auto; /* push the chart group to the bottom of the screen */
 }
 
 @media (max-width: 720px) {
@@ -1015,8 +1024,9 @@ a { color: inherit; text-decoration: none; }
     stroke-width: 2;
   }
 
-  .screen-content { padding: 1rem; gap: clamp(0.6rem, 1.6vh, 0.9rem); }
-  .screen-digits { gap: clamp(0.7rem, 2vh, 1.1rem); }
+  /* keep padding:0 so breakdown/chart bleed; digits/actions inset themselves */
+  .screen-digits { gap: clamp(0.6rem, 1.8vh, 1rem); padding: 0.6rem 1rem; }
+  .screen-actions { padding: 0 1rem 0.6rem; }
 
   /* Digits scale down with the viewport so "6,049,194.374 ETH" fits on a
    * 390px iPhone screen without horizontal overflow. */
@@ -1041,10 +1051,8 @@ a { color: inherit; text-decoration: none; }
   .breakdown-segment-pct { font-size: clamp(0.52rem, 1.9vw, 0.66rem); }
   .breakdown-segment-label { font-size: clamp(0.46rem, 1.7vw, 0.58rem); letter-spacing: 0.1em; }
 
-  .screen-chart { gap: 0.35rem; }
-  .inflow-chart-svg { height: clamp(32px, 7svh, 52px); }
-  .inflow-chart-caption { font-size: clamp(0.5rem, 2vw, 0.62rem); }
-  .range-toggle-btn { padding: 0.26rem 0.55rem; font-size: clamp(0.5rem, 2vw, 0.64rem); }
+  .inflow-chart { height: clamp(34px, 7svh, 56px); }
+  .range-toggle-btn { padding: 0.26rem 0.5rem; font-size: clamp(0.5rem, 2vw, 0.64rem); }
 
   /* Hero subtitle + page-mast sit closer on phones */
   .hero-subtitle { font-size: clamp(0.95rem, 4.5vw, 1.4rem); }

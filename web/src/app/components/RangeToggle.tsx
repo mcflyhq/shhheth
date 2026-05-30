@@ -20,7 +20,7 @@ function RangeToggle({ ranges, active, onChange }: Props) {
           type="button"
           role="tab"
           aria-selected={r.key === active}
-          className={`range-toggle-btn${r.key === active ? " is-active" : ""}`}
+          className={`range-toggle-btn range-toggle-btn-${r.key}${r.key === active ? " is-active" : ""}`}
           onClick={() => onChange(r.key)}
         >
           {SHORT[r.key]}
