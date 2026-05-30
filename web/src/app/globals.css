@@ -43,7 +43,7 @@ a { color: inherit; text-decoration: none; }
 .lens-stage {
   --lens-x: 78vw;
   --lens-y: 30vh;
-  --screen-h: clamp(20rem, 52svh, 36rem);
+  --screen-h: clamp(23rem, 62svh, 41rem);
   position: relative;
   isolation: isolate;
   min-height: 100svh;
@@ -309,7 +309,10 @@ a { color: inherit; text-decoration: none; }
   align-items: stretch;
   justify-content: space-between;
   gap: clamp(0.8rem, 1.6vh, 1.2rem);
-  padding: clamp(1.2rem, 2.4vw, 2.4rem);
+  padding: clamp(1.2rem, 2.4vw, 2.4rem) clamp(1.2rem, 2.4vw, 2.4rem) clamp(0.7rem, 1.6vw, 1.2rem);
+  /* The chart is pinned to the bottom; clip so nothing ever spills past the
+   * rounded frame onto the cards below. */
+  overflow: hidden;
   pointer-events: none;
   color: var(--ink);
 }
@@ -670,37 +673,69 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
 }
-.inflow-chart svg {
+.inflow-chart-svg {
   width: 100%;
-  height: clamp(48px, 10vh, 96px);
+  height: clamp(44px, 9svh, 84px);
   display: block;
+  /* bars/area sit flush to the bottom inner edge of the screen */
 }
-.inflow-chart-empty svg { display: none; }
+.inflow-chart-empty .inflow-chart-svg { display: none; }
+
+/* Quiet-by-default, color-on-hover — same language as the breakdown bar. */
+.inflow-bar,
+.inflow-area {
+  transition: fill 200ms ease;
+}
+/* hairline separators so the stacked grey bands stay legible at rest */
+.inflow-area {
+  stroke: rgba(248, 251, 255, 0.5);
+  stroke-width: 0.25;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Caption is an always-present reserved line above the bars — never empty in
+ * layout terms, so hovering a bar swaps only the text and never changes the
+ * chart's height (and therefore never nudges the fixed-height screen). */
 .inflow-chart-caption {
   margin: 0;
+  min-height: 1.1em;
+  pointer-events: none;
   font-family: var(--mono);
   font-size: clamp(0.56rem, 0.7vw, 0.68rem);
   letter-spacing: 0.1em;
-  color: rgba(10, 13, 18, 0.5);
+  color: rgba(10, 13, 18, 0.62);
   text-align: center;
-  min-height: 1em;
+  white-space: nowrap;
 }
 
 .sparkline {
   width: 100%;
   height: 18px;
-  margin-top: 0.4rem;
-  opacity: 0.85;
+  opacity: 0.9;
+}
+
+.protocol-card-spark {
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.protocol-card-spark-label {
+  font-family: var(--mono);
+  font-size: clamp(0.5rem, 0.62vw, 0.6rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.4);
 }
 
 .screen-chart {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.3rem;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: auto; /* push the chart group to the bottom of the screen */
 }
 
 @media (max-width: 720px) {
@@ -958,9 +993,9 @@ a { color: inherit; text-decoration: none; }
   .lens-stage {
     padding: clamp(3.6rem, 12vw, 5rem) clamp(0.85rem, 4vw, 1.6rem) clamp(2.4rem, 5vh, 3.4rem);
     gap: clamp(1.6rem, 4vh, 2.4rem);
-    /* Shorter screen so the digit row + sublabel + bar all fit comfortably
+    /* Shorter screen so the digit row + sublabel + bar + mini-chart fit
      * within an iPhone 14 / Pro / Plus viewport without scroll-bleed. */
-    --screen-h: clamp(11rem, 34svh, 17rem);
+    --screen-h: clamp(15rem, 46svh, 22rem);
   }
 
   .hero-shhh { max-width: 100%; }
@@ -1002,6 +1037,11 @@ a { color: inherit; text-decoration: none; }
   .screen-breakdown { height: clamp(1.9rem, 5vh, 2.4rem); }
   .breakdown-segment-pct { font-size: clamp(0.52rem, 1.9vw, 0.66rem); }
   .breakdown-segment-label { font-size: clamp(0.46rem, 1.7vw, 0.58rem); letter-spacing: 0.1em; }
+
+  .screen-chart { gap: 0.35rem; }
+  .inflow-chart-svg { height: clamp(32px, 7svh, 52px); }
+  .inflow-chart-caption { font-size: clamp(0.5rem, 2vw, 0.62rem); }
+  .range-toggle-btn { padding: 0.26rem 0.55rem; font-size: clamp(0.5rem, 2vw, 0.64rem); }
 
   /* Hero subtitle + page-mast sit closer on phones */
   .hero-subtitle { font-size: clamp(0.95rem, 4.5vw, 1.4rem); }

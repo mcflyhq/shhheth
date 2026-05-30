@@ -1,19 +1,31 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useRef, useState, type PointerEvent } from "react";
 import type { ChartPoint } from "@/lib/daily";
 
-type Props = { points: ChartPoint[]; mode: "bars" | "area"; order: { id: string; color: string }[] };
+type Props = {
+  points: ChartPoint[];
+  mode: "bars" | "area";
+  order: { id: string; color: string }[];
+  /** Shared protocol hover (breakdown segment / area band). */
+  hoveredId: string | null;
+  onHover: (id: string | null) => void;
+};
 
 const H = 60; // viewBox height units
+// Mirror the breakdown bar's quiet ink-wash; color only on hover.
+const GREY = "rgba(10, 13, 18, 0.16)";
+const GREY_ALT = "rgba(10, 13, 18, 0.10)";
 
-function InflowChart({ points, mode, order }: Props) {
-  const [hover, setHover] = useState<number | null>(null);
+function InflowChart({ points, mode, order, hoveredId, onHover }: Props) {
+  const [dayHover, setDayHover] = useState<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  const max = useMemo(
-    () => Math.max(1e-9, ...points.map((p) => p.total)),
-    [points],
-  );
+  const max = useMemo(() => Math.max(1e-9, ...points.map((p) => p.total)), [points]);
+  const greyOf = useMemo(() => {
+    const idx = new Map(order.map((o, i) => [o.id, i]));
+    return (id: string) => ((idx.get(id) ?? 0) % 2 ? GREY_ALT : GREY);
+  }, [order]);
 
   if (points.length === 0) {
     return <div className="inflow-chart inflow-chart-empty" aria-hidden="true" />;
@@ -23,29 +35,60 @@ function InflowChart({ points, mode, order }: Props) {
   const colW = 100 / n;
   const y = (eth: number) => H - (eth / max) * H;
 
+  // Full-width hit-testing: map cursor x to the nearest column (covers gaps).
+  const handleMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (mode !== "bars") return;
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const frac = (e.clientX - rect.left) / rect.width;
+    setDayHover(Math.min(n - 1, Math.max(0, Math.floor(frac * n))));
+  };
+  const handleLeave = () => {
+    setDayHover(null);
+    if (mode === "area") onHover(null);
+  };
+
+  const caption =
+    mode === "bars" && dayHover !== null
+      ? `${points[dayHover].label} · ${points[dayHover].total.toFixed(1)} ETH`
+      : " ";
+
   return (
-    <div className="inflow-chart">
-      <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-label="Shielded inflow over time">
+    <div
+      className="inflow-chart"
+      ref={wrapRef}
+      onPointerMove={handleMove}
+      onPointerLeave={handleLeave}
+    >
+      <p className="inflow-chart-caption" aria-live="polite">{caption}</p>
+      <svg
+        className="inflow-chart-svg"
+        viewBox={`0 0 100 ${H}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Shielded inflow over time"
+      >
         {mode === "bars"
           ? points.map((p, i) => {
-              const x = i * colW;
               let acc = 0;
+              const x = i * colW;
               return (
-                <g key={i} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(null)}>
-                  <rect x={x} y={0} width={colW} height={H} fill="transparent" />
+                <g key={i}>
                   {p.values.map((v) => {
                     const h = (v.eth / max) * H;
                     const yy = H - acc - h;
                     acc += h;
+                    const colored = dayHover === i || hoveredId === v.id;
                     return (
                       <rect
                         key={v.id}
-                        x={x + colW * 0.12}
+                        className="inflow-bar"
+                        x={x + colW * 0.1}
                         y={yy}
-                        width={colW * 0.76}
+                        width={colW * 0.8}
                         height={Math.max(0, h)}
-                        fill={v.color}
-                        opacity={hover === null || hover === i ? 1 : 0.45}
+                        fill={colored ? v.color : greyOf(v.id)}
                       />
                     );
                   })}
@@ -53,31 +96,28 @@ function InflowChart({ points, mode, order }: Props) {
               );
             })
           : order.map((o) => {
-              // stacked area: baseline accumulates across protocols
               const top: string[] = [];
               const bottom: string[] = [];
               points.forEach((p, i) => {
                 const x = (i / (n - 1 || 1)) * 100;
-                const below = p.values
-                  .slice(0, p.values.findIndex((v) => v.id === o.id))
-                  .reduce((s, v) => s + v.eth, 0);
-                const here = p.values.find((v) => v.id === o.id)?.eth ?? 0;
+                const idx = p.values.findIndex((v) => v.id === o.id);
+                const below = p.values.slice(0, idx).reduce((s, v) => s + v.eth, 0);
+                const here = p.values[idx]?.eth ?? 0;
                 top.push(`${x},${y(below + here)}`);
                 bottom.push(`${x},${y(below)}`);
               });
+              const active = hoveredId === o.id;
               return (
                 <polygon
                   key={o.id}
+                  className="inflow-area"
                   points={[...top, ...bottom.reverse()].join(" ")}
-                  fill={o.color}
-                  opacity={0.9}
+                  fill={active ? o.color : greyOf(o.id)}
+                  onPointerEnter={() => onHover(o.id)}
                 />
               );
             })}
       </svg>
-      <p className="inflow-chart-caption" aria-live="polite">
-        {hover !== null ? `${points[hover].label} · ${points[hover].total.toFixed(1)} ETH` : " "}
-      </p>
     </div>
   );
 }

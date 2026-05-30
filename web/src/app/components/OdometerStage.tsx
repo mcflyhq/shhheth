@@ -243,7 +243,13 @@ export default function OdometerStage({
               active={activeRange}
               onChange={setActiveRange}
             />
-            <InflowChart points={view.points} mode={view.mode} order={order} />
+            <InflowChart
+              points={view.points}
+              mode={view.mode}
+              order={order}
+              hoveredId={hoveredId}
+              onHover={setHoveredId}
+            />
           </div>
         </div>
       </div>

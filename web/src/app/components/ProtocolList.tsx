@@ -72,7 +72,10 @@ export default function ProtocolList({ scaffold, live, sparklines }: Props) {
                   <>
                     <span className="protocol-card-amount">{amount}</span>
                     <span className="protocol-card-amount-label">ETH shielded · cumulative</span>
-                    <Sparkline values={sparklines[row.id] ?? []} color={row.color} />
+                    <figure className="protocol-card-spark">
+                      <Sparkline values={sparklines[row.id] ?? []} color={row.color} />
+                      <figcaption className="protocol-card-spark-label">daily inflow · last 30d</figcaption>
+                    </figure>
                   </>
                 ) : (
                   <>
