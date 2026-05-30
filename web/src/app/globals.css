@@ -665,6 +665,29 @@ a { color: inherit; text-decoration: none; }
   color: var(--paper);
 }
 
+.inflow-chart {
+  pointer-events: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.inflow-chart svg {
+  width: 100%;
+  height: clamp(48px, 10vh, 96px);
+  display: block;
+}
+.inflow-chart-empty svg { display: none; }
+.inflow-chart-caption {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.56rem, 0.7vw, 0.68rem);
+  letter-spacing: 0.1em;
+  color: rgba(10, 13, 18, 0.5);
+  text-align: center;
+  min-height: 1em;
+}
+
 @media (max-width: 720px) {
   .protocol-grid { grid-template-columns: 1fr; }
 }
