@@ -688,6 +688,13 @@ a { color: inherit; text-decoration: none; }
   min-height: 1em;
 }
 
+.sparkline {
+  width: 100%;
+  height: 18px;
+  margin-top: 0.4rem;
+  opacity: 0.85;
+}
+
 @media (max-width: 720px) {
   .protocol-grid { grid-template-columns: 1fr; }
 }

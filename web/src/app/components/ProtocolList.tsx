@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import type { ProtocolStatus } from "@/lib/protocols";
 import { formatETH, type DisplayProtocol } from "@/lib/subgraph";
+import Sparkline from "./Sparkline";
 import { useSpotlight } from "./useSpotlight";
 
 /** Server-safe subset of ProtocolConfig — strips the adapter function so the
@@ -18,9 +19,10 @@ export type ProtocolListItem = {
 type Props = {
   scaffold: ProtocolListItem[];
   live: DisplayProtocol[];
+  sparklines: Record<string, number[]>;
 };
 
-export default function ProtocolList({ scaffold, live }: Props) {
+export default function ProtocolList({ scaffold, live, sparklines }: Props) {
   const liveById = useMemo(
     () => new Map(live.map((p) => [p.id, p])),
     [live],
@@ -70,6 +72,7 @@ export default function ProtocolList({ scaffold, live }: Props) {
                   <>
                     <span className="protocol-card-amount">{amount}</span>
                     <span className="protocol-card-amount-label">ETH shielded · cumulative</span>
+                    <Sparkline values={sparklines[row.id] ?? []} color={row.color} />
                   </>
                 ) : (
                   <>
