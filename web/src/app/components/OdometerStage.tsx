@@ -12,9 +12,11 @@ import {
 import BraunDigits from "./BraunDigits";
 import BreakdownSegment from "./BreakdownSegment";
 import ShareButton from "./ShareButton";
+import RangeToggle from "./RangeToggle";
+import InflowChart from "./InflowChart";
 import type { DisplayProtocol } from "@/lib/subgraph";
-
-type WeekDelta = { formatted: string; zero: boolean };
+import type { RangeView } from "../page";
+import type { RangeKey } from "@/lib/daily";
 
 type DeltaView = { flat: boolean; primary: string; secondary: string };
 
@@ -22,8 +24,7 @@ type Props = {
   formattedTotal: string;
   isLive: boolean;
   protocols: DisplayProtocol[];
-  weekDelta: WeekDelta | null;
-  windowDays: number;
+  ranges: RangeView[];
   shareText: string;
   shareUrl: string;
   children?: React.ReactNode;
@@ -33,13 +34,15 @@ export default function OdometerStage({
   formattedTotal,
   isLive,
   protocols,
-  weekDelta,
-  windowDays,
+  ranges,
   shareText,
   shareUrl,
   children,
 }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [activeRange, setActiveRange] = useState<RangeKey>("7d");
+  const view = ranges.find((r) => r.key === activeRange) ?? ranges[0];
+  const order = ranges[0].points[0]?.values.map((v) => ({ id: v.id, color: v.color })) ?? [];
   const [cursorInStage, setCursorInStage] = useState(false);
   const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
   const stageRef = useRef<HTMLElement | null>(null);
@@ -118,24 +121,22 @@ export default function OdometerStage({
     ? `${hovered.name} · ${hovered.percentage.toFixed(1)}% of the total`
     : "Has been shielded across privacy protocols";
 
-  const windowLabel = `last ${windowDays} days`;
   const deltaView: DeltaView | null = useMemo(() => {
     if (hovered) {
-      if (hovered.formattedDelta === null) return null;
-      const flat = hovered.deltaWei === "0";
-      const secondary =
-        !flat && hovered.weekSharePct !== null
-          ? `${hovered.weekSharePct.toFixed(0)}% of this week`
-          : windowLabel;
-      return { flat, primary: flat ? "flat" : `${hovered.formattedDelta} ETH`, secondary };
+      const b = view.byProtocol[hovered.id];
+      if (!b) return null;
+      return {
+        flat: b.zero,
+        primary: b.zero ? "flat" : `${b.formatted} ETH`,
+        secondary: !b.zero && b.sharePct !== null ? `${b.sharePct.toFixed(0)}% of ${view.label}` : view.label,
+      };
     }
-    if (!weekDelta) return null;
     return {
-      flat: weekDelta.zero,
-      primary: weekDelta.zero ? "flat" : `${weekDelta.formatted} ETH`,
-      secondary: windowLabel,
+      flat: view.delta.zero,
+      primary: view.delta.zero ? "flat" : `${view.delta.formatted} ETH`,
+      secondary: view.label,
     };
-  }, [hovered, weekDelta, windowLabel]);
+  }, [hovered, view]);
 
   return (
     <section
@@ -235,6 +236,15 @@ export default function OdometerStage({
               </div>
             </div>
           )}
+
+          <div className="screen-chart">
+            <RangeToggle
+              ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
+              active={activeRange}
+              onChange={setActiveRange}
+            />
+            <InflowChart points={view.points} mode={view.mode} order={order} />
+          </div>
         </div>
       </div>
 
