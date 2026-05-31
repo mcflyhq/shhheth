@@ -8,8 +8,8 @@ type Props = {
   order: { id: string; color: string }[];
   /** Shared protocol hover (breakdown segment) — colours that band across columns. */
   hoveredId: string | null;
-  /** Hovered column — surfaced in the headline value slot, not in the chart. */
-  onDayHover: (day: { label: string; total: number } | null) => void;
+  /** Hovered column — surfaced in the headline + morphs the breakdown bar. */
+  onDayHover: (point: ChartPoint | null) => void;
 };
 
 /**
@@ -39,7 +39,7 @@ function InflowChart({ points, order, hoveredId, onDayHover }: Props) {
     const rect = el.getBoundingClientRect();
     const i = Math.min(n - 1, Math.max(0, Math.floor(((e.clientX - rect.left) / rect.width) * n)));
     setDayHover(i);
-    onDayHover({ label: points[i].label, total: points[i].total });
+    onDayHover(points[i]);
   };
   const handleLeave = () => {
     setDayHover(null);

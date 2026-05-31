@@ -43,7 +43,7 @@ export default async function HomePage() {
   const rangeViews: RangeView[] = RANGES.map((r) => {
     const isAll = r.key === "all";
     const points = isAll
-      ? toChartPoints(allCumulative, order)
+      ? toChartPoints(allCumulative, order, true)
       : toChartPoints(lastN(series, r.days), order);
     const sum = isAll
       ? { total: snapshot.totalETH, perProtocol: Object.fromEntries(snapshot.protocols.map((p) => [p.id, p.totalETH])) }

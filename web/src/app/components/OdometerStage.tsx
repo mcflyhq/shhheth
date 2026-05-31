@@ -16,7 +16,7 @@ import RangeToggle from "./RangeToggle";
 import InflowChart from "./InflowChart";
 import type { DisplayProtocol } from "@/lib/subgraph";
 import type { RangeView } from "../page";
-import type { RangeKey } from "@/lib/daily";
+import type { ChartPoint, RangeKey } from "@/lib/daily";
 
 type DeltaView = { tone: "up" | "flat" | "day"; primary: string };
 
@@ -42,7 +42,7 @@ export default function OdometerStage({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   // 7d is a mobile-only option (hidden on desktop via CSS); default to 30d.
   const [activeRange, setActiveRange] = useState<RangeKey>("30d");
-  const [dayHover, setDayHover] = useState<{ label: string; total: number } | null>(null);
+  const [dayPoint, setDayPoint] = useState<ChartPoint | null>(null);
   const view = ranges.find((r) => r.key === activeRange) ?? ranges[0];
   const order = ranges[0].points[0]?.values.map((v) => ({ id: v.id, color: v.color })) ?? [];
   const [cursorInStage, setCursorInStage] = useState(false);
@@ -127,15 +127,30 @@ export default function OdometerStage({
   // date + inflow; otherwise the selected period's delta (aggregate, or the
   // hovered protocol's). The range toggle — not text — carries the period.
   const deltaView: DeltaView = useMemo(() => {
-    if (dayHover) {
-      return { tone: "day", primary: `${dayHover.label} · ${dayHover.total.toFixed(1)} ETH` };
+    if (dayPoint) {
+      return { tone: "day", primary: `${dayPoint.label} · ${dayPoint.total.toFixed(1)} ETH` };
     }
     const d = hovered ? view.byProtocol[hovered.id] : view.delta;
     if (!d) return { tone: "flat", primary: "flat" };
     return d.zero
       ? { tone: "flat", primary: "flat" }
       : { tone: "up", primary: `${d.formatted} ETH` };
-  }, [dayHover, hovered, view]);
+  }, [dayPoint, hovered, view]);
+
+  // Hovering a chart bar morphs the breakdown bar to that day's per-protocol
+  // split (same order as all-time, so only the widths animate).
+  const breakdownProtocols = useMemo(() => {
+    if (!dayPoint) return protocols;
+    const ethById = new Map(dayPoint.values.map((v) => [v.id, v.eth]));
+    return protocols.map((p) => {
+      const eth = ethById.get(p.id) ?? 0;
+      return {
+        ...p,
+        percentage: dayPoint.total > 0 ? (eth / dayPoint.total) * 100 : 0,
+        formattedETH: eth.toFixed(1),
+      };
+    });
+  }, [dayPoint, protocols]);
 
   return (
     <section
@@ -198,7 +213,7 @@ export default function OdometerStage({
           {protocols.length > 0 && (
             <div className="breakdown">
               <div className="screen-breakdown" role="group" aria-label="Per-protocol share of all-time shielded ETH">
-                {protocols.map((p) => (
+                {breakdownProtocols.map((p) => (
                   <BreakdownSegment
                     key={p.id}
                     protocol={p}
@@ -229,15 +244,14 @@ export default function OdometerStage({
               )}
               <span className="screen-delta-value">{deltaView.primary}</span>
             </p>
-          </div>
-
-          <div className="screen-actions">
-            <RangeToggle
-              ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
-              active={activeRange}
-              onChange={setActiveRange}
-            />
-            <ShareButton text={shareText} url={shareUrl} />
+            <div className="screen-actions">
+              <RangeToggle
+                ranges={ranges.map((r) => ({ key: r.key, label: r.label }))}
+                active={activeRange}
+                onChange={setActiveRange}
+              />
+              <ShareButton text={shareText} url={shareUrl} />
+            </div>
           </div>
 
           <div className="screen-chart">
@@ -245,7 +259,7 @@ export default function OdometerStage({
               points={view.points}
               order={order}
               hoveredId={hoveredId}
-              onDayHover={setDayHover}
+              onDayHover={setDayPoint}
             />
           </div>
         </div>

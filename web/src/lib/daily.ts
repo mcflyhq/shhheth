@@ -101,19 +101,23 @@ export type ChartPoint = { label: string; values: ChartSegment[]; total: number 
 
 export type StackOrder = { id: string; color: string }[];
 
-function dayLabel(dayNumber: number): string {
-  const d = new Date(dayNumber * 86400 * 1000);
-  return d.toISOString().slice(5, 10); // MM-DD
+function dayLabel(dayNumber: number, withYear = false): string {
+  const iso = new Date(dayNumber * 86400 * 1000).toISOString();
+  return withYear ? iso.slice(0, 10) : iso.slice(5, 10); // YYYY-MM-DD vs MM-DD
 }
 
-export function toChartPoints(series: DailySeries, order: StackOrder): ChartPoint[] {
+export function toChartPoints(
+  series: DailySeries,
+  order: StackOrder,
+  withYear = false,
+): ChartPoint[] {
   return series.days.map((d) => {
     const values = order.map((o) => ({
       id: o.id,
       color: o.color,
       eth: Number(d.perProtocol[o.id] ?? 0n) / WEI,
     }));
-    return { label: dayLabel(d.date), values, total: Number(d.total) / WEI };
+    return { label: dayLabel(d.date, withYear), values, total: Number(d.total) / WEI };
   });
 }
 
