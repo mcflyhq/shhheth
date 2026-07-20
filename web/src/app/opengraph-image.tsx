@@ -6,7 +6,7 @@ import { formatETH, formatSignedETH, getTotals } from "@/lib/subgraph";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "shhheth — the quiet index for shielded ETH";
+export const alt = "shhheth · the quiet index for shielded ETH";
 
 const PAPER = "#eef3f7";
 const MUTED = "rgba(238, 247, 255, 0.55)";

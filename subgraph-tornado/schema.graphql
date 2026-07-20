@@ -16,3 +16,38 @@ type TornadoPoolContribution @entity(immutable: false) {
   pool: String! # "0.1", "1", "10", "100"
   totalShieldedETH: BigInt!
 }
+
+"""
+Per-deposit event for flow.shhheth. Immutable; one row per Deposit log.
+`from` is the submitting EOA (tx.from) — not proven ownership of the note.
+"""
+type TornadoDeposit @entity(immutable: true) {
+  id: ID! # txHash-logIndex
+  pool: String! # "0.1" | "1" | "10" | "100"
+  amount: BigInt!
+  from: Bytes!
+  commitment: Bytes!
+  leafIndex: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+  logIndex: BigInt!
+}
+
+"""
+Per-withdrawal event for flow.shhheth. Immutable; one row per Withdrawal log.
+No on-chain link to a deposit — that is the privacy property.
+"""
+type TornadoWithdrawal @entity(immutable: true) {
+  id: ID! # txHash-logIndex
+  pool: String!
+  amount: BigInt!
+  to: Bytes!
+  relayer: Bytes!
+  nullifierHash: Bytes!
+  fee: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+  logIndex: BigInt!
+}

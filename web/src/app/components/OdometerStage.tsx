@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -14,6 +13,7 @@ import BreakdownSegment from "./BreakdownSegment";
 import ShareButton from "./ShareButton";
 import RangeToggle from "./RangeToggle";
 import InflowChart from "./InflowChart";
+import PageMast from "./PageMast";
 import type { DisplayProtocol } from "@/lib/subgraph";
 import type { RangeView } from "../page";
 import type { ChartPoint, RangeKey } from "@/lib/daily";
@@ -46,32 +46,8 @@ export default function OdometerStage({
   const view = ranges.find((r) => r.key === activeRange) ?? ranges[0];
   const order = ranges[0].points[0]?.values.map((v) => ({ id: v.id, color: v.color })) ?? [];
   const [cursorInStage, setCursorInStage] = useState(false);
-  const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
   const stageRef = useRef<HTMLElement | null>(null);
   const stageRectRef = useRef<DOMRect | null>(null);
-  const shhhTextRef = useRef<SVGTextElement | null>(null);
-
-  /* Snap the letter SVG's viewBox to the actual rendered text. Without this,
-   * the SVG carries a fixed-width box of empty pixels to the right of "shhh",
-   * which pushes the dot away from the letters in the flex row. */
-  useLayoutEffect(() => {
-    const measure = () => {
-      if (!shhhTextRef.current) return;
-      const bbox = shhhTextRef.current.getBBox();
-      if (bbox.width > 0) {
-        setLetterBox({
-          x: Math.floor(bbox.x),
-          w: Math.ceil(bbox.width + 4),
-        });
-      }
-    };
-    measure();
-    if (typeof document !== "undefined" && document.fonts?.ready) {
-      document.fonts.ready.then(measure).catch(() => {});
-    }
-    window.addEventListener("resize", measure, { passive: true });
-    return () => window.removeEventListener("resize", measure);
-  }, []);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -163,48 +139,7 @@ export default function OdometerStage({
       <div className="ambient-noise" aria-hidden="true" />
       <div className="page-pattern" aria-hidden="true" />
 
-      <div className="page-mast">
-        <h1 className="hero-shhh-logo" aria-label="shhh — the quiet index">
-          <svg
-            className="hero-shhh-letters"
-            viewBox={`${letterBox.x} 0 ${letterBox.w} 200`}
-            preserveAspectRatio="xMidYMax meet"
-            role="img"
-            aria-hidden="true"
-          >
-            <text
-              ref={shhhTextRef}
-              x="0"
-              y="178"
-              textAnchor="start"
-              dominantBaseline="alphabetic"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              className="hero-shhh-text"
-            >
-              shhh
-            </text>
-          </svg>
-          <span className="hero-shhh-dot" aria-hidden="true">
-            <svg className="hero-shhh-dot-ring" viewBox="0 0 100 100" aria-hidden="true">
-              <circle
-                cx="50"
-                cy="50"
-                r="46"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <span className="hero-shhh-emoji">🤫</span>
-          </span>
-        </h1>
-        <p className="hero-subtitle">The quiet index for shielded ETH.</p>
-      </div>
+      <PageMast view="index" />
 
       <div className="screen-frame" aria-hidden="true">
         <div className="screen-glow" />

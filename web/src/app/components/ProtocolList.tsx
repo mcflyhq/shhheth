@@ -79,7 +79,7 @@ export default function ProtocolList({ scaffold, live, sparklines }: Props) {
                   </>
                 ) : (
                   <>
-                    <span className="protocol-card-amount protocol-card-amount-quiet">—</span>
+                    <span className="protocol-card-amount protocol-card-amount-quiet">···</span>
                     <span className="protocol-card-amount-label">catching up</span>
                   </>
                 )}

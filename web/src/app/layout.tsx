@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
@@ -38,13 +38,20 @@ const dseg7 = localFont({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shhheth.com";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#050604",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "shhheth — every ETH that ever went private",
+  title: "shhheth · every ETH that ever went private",
   description:
     "shhh. The quiet index for shielded ETH on Ethereum. Cumulative, not TVL. Goes up only.",
   openGraph: {
-    title: "shhheth — every ETH that ever went private",
+    title: "shhheth · every ETH that ever went private",
     description:
       "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Goes up only.",
     url: siteUrl,
@@ -53,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "shhheth — every ETH that ever went private",
+    title: "shhheth · every ETH that ever went private",
     description:
       "shhh. The live counter for ETH shielded into Ethereum privacy protocols. Goes up only.",
   },

@@ -17,12 +17,16 @@ dataSources:
         - TornadoGlobal
         - TornadoDailyInflow
         - TornadoPoolContribution
+        - TornadoDeposit
+        - TornadoWithdrawal
       abis:
         - name: TornadoPool
           file: ./abis/TornadoPool.json
       eventHandlers:
         - event: Deposit(indexed bytes32,uint32,uint256)
           handler: handleDeposit01
+        - event: Withdrawal(address,bytes32,indexed address,uint256)
+          handler: handleWithdrawal01
       file: ./src/tornado.ts
 
   - kind: ethereum/contract
@@ -40,12 +44,16 @@ dataSources:
         - TornadoGlobal
         - TornadoDailyInflow
         - TornadoPoolContribution
+        - TornadoDeposit
+        - TornadoWithdrawal
       abis:
         - name: TornadoPool
           file: ./abis/TornadoPool.json
       eventHandlers:
         - event: Deposit(indexed bytes32,uint32,uint256)
           handler: handleDeposit1
+        - event: Withdrawal(address,bytes32,indexed address,uint256)
+          handler: handleWithdrawal1
       file: ./src/tornado.ts
 
   - kind: ethereum/contract
@@ -63,12 +71,16 @@ dataSources:
         - TornadoGlobal
         - TornadoDailyInflow
         - TornadoPoolContribution
+        - TornadoDeposit
+        - TornadoWithdrawal
       abis:
         - name: TornadoPool
           file: ./abis/TornadoPool.json
       eventHandlers:
         - event: Deposit(indexed bytes32,uint32,uint256)
           handler: handleDeposit10
+        - event: Withdrawal(address,bytes32,indexed address,uint256)
+          handler: handleWithdrawal10
       file: ./src/tornado.ts
 
   - kind: ethereum/contract
@@ -86,10 +98,14 @@ dataSources:
         - TornadoGlobal
         - TornadoDailyInflow
         - TornadoPoolContribution
+        - TornadoDeposit
+        - TornadoWithdrawal
       abis:
         - name: TornadoPool
           file: ./abis/TornadoPool.json
       eventHandlers:
         - event: Deposit(indexed bytes32,uint32,uint256)
           handler: handleDeposit100
+        - event: Withdrawal(address,bytes32,indexed address,uint256)
+          handler: handleWithdrawal100
       file: ./src/tornado.ts

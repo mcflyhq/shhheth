@@ -28,6 +28,7 @@ html {
 
 body {
   min-width: 320px;
+  overflow-x: hidden;
   margin: 0;
   background: var(--black);
   color: var(--paper);
@@ -199,14 +200,14 @@ a { color: inherit; text-decoration: none; }
 .hero-subtitle {
   /* Sits close to the logo — the whole thing reads as a single brand unit */
   margin: clamp(-0.2rem, -0.1vw, 0.2rem) auto 0;
-  max-width: 30ch;
+  max-width: 32ch;
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(1.1rem, 1.8vw, 1.65rem);
-  letter-spacing: -0.005em;
-  line-height: 1.25;
-  color: rgba(238, 247, 255, 0.62);
+  font-size: clamp(1.15rem, 1.85vw, 1.7rem);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: rgba(238, 247, 255, 0.72);
   text-wrap: balance;
 }
 
@@ -919,11 +920,11 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 0.7rem;
   margin: 0 0 clamp(1.2rem, 2vw, 1.6rem);
-  color: rgba(238, 247, 255, 0.55);
+  color: rgba(238, 247, 255, 0.62);
   font-family: var(--mono);
   font-size: clamp(0.66rem, 0.76vw, 0.76rem);
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -938,11 +939,11 @@ a { color: inherit; text-decoration: none; }
   margin: 0 0 clamp(1.6rem, 3vw, 2.4rem);
   max-width: 22ch;
   color: rgba(245, 248, 252, 0.96);
-  font-size: clamp(2rem, 4.4vw, 3.6rem);
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
   font-family: var(--serif);
   font-weight: 400;
-  letter-spacing: -0.022em;
-  line-height: 1.02;
+  letter-spacing: -0.02em; /* ≥ -0.04em floor; not cramped */
+  line-height: 1.08;
   display: flex;
   flex-direction: column;
   gap: 0.05em;
@@ -963,12 +964,12 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   gap: clamp(0.95rem, 1.6vh, 1.3rem);
   /* Match the protocol cards' container width so the right edges align. */
-  max-width: 100%;
+  max-width: min(100%, 65ch);
   font-family: var(--sans);
   font-size: clamp(1rem, 1.06vw, 1.1rem);
   font-weight: 400;
-  line-height: 1.62;
-  color: rgba(238, 247, 255, 0.74);
+  line-height: 1.68; /* light-on-dark needs a little more air */
+  color: rgba(238, 247, 255, 0.8);
   text-wrap: pretty;
 }
 
@@ -1005,6 +1006,1414 @@ a { color: inherit; text-decoration: none; }
 .site-footer-sep { color: rgba(238, 247, 255, 0.2); }
 
 /* =========================================================================
+ * FLOW — Tornado Cash pool flow panel inside the glass screen
+ * Same quiet-ink → color+dots language as .inflow-seg / breakdown segments.
+ *
+ * Type scale (dark UI, ~1.2 ratio between steps):
+ *   caption  0.625–0.6875rem  · mono labels / list heads
+ *   ui       0.75rem          · chips, rows, toggles
+ *   value    1.05–1.25rem     · ETH figures
+ * Tracking on mono uppercase stays ≤0.14em (readable; not billboard track).
+ * Ink ramps favor contrast on near-black (labels ≥ ~0.55 alpha).
+ * ========================================================================= */
+
+.flow-stage {
+  /* Taller screen so the bipartite lists + canvas breathe */
+  --screen-h: clamp(34rem, 78svh, 48rem);
+  --flow-type-caption: 0.625rem;
+  --flow-type-label: 0.6875rem;
+  --flow-type-ui: 0.75rem;
+  --flow-type-value: clamp(1.05rem, 1.35vw, 1.25rem);
+  --flow-track: 0.1em;
+  --flow-track-tight: 0.04em;
+  --flow-ink-label: rgba(238, 247, 255, 0.58);
+  --flow-ink-muted: rgba(238, 247, 255, 0.48);
+  --flow-ink-soft: rgba(238, 247, 255, 0.72);
+  --flow-ink-value: rgba(238, 247, 255, 0.96);
+}
+
+.flow-inline-link {
+  color: rgba(238, 247, 255, 0.96);
+  text-decoration: underline;
+  text-decoration-color: rgba(238, 247, 255, 0.28);
+  text-underline-offset: 0.18em;
+}
+.flow-inline-link:hover {
+  text-decoration-color: rgba(238, 247, 255, 0.7);
+}
+
+.flow-screen-frame {
+  /* Fixed height so list columns can stretch to the card bottom */
+  height: var(--screen-h);
+  min-height: var(--screen-h);
+}
+
+/* Terminal chrome — dark glass instead of paper screen */
+.flow-screen-frame .screen-glow {
+  background:
+    radial-gradient(circle at 30% 14%, rgba(80, 120, 180, 0.18), transparent 19rem),
+    radial-gradient(circle at 74% 15%, rgba(0, 71, 255, 0.16), transparent 24rem),
+    radial-gradient(circle at 48% 86%, rgba(0, 40, 120, 0.2), transparent 28rem);
+  box-shadow:
+    0 0 0 1px rgba(238, 247, 255, 0.12),
+    0 0 28px rgba(0, 71, 255, 0.12),
+    0 0 94px rgba(0, 20, 60, 0.35),
+    inset 0 0 58px rgba(0, 0, 0, 0.4);
+}
+
+.flow-screen-frame .screen-surface {
+  border-color: rgba(238, 247, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(12, 16, 14, 0.98), rgba(6, 8, 7, 0.99)),
+    var(--black);
+  opacity: 1;
+  backdrop-filter: none;
+}
+
+.flow-screen-frame .screen-surface::before {
+  opacity: 0.12;
+  background:
+    repeating-linear-gradient(0deg, rgba(238, 247, 255, 0.06) 0 1px, transparent 1px 4px);
+  mix-blend-mode: normal;
+}
+
+.flow-screen-content {
+  pointer-events: auto;
+  padding: 0;
+  color: rgba(238, 247, 255, 0.88);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.flow-panel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.65rem, 1.4vh, 1rem);
+  padding: clamp(0.85rem, 1.6vh, 1.15rem) clamp(0.85rem, 1.6vw, 1.25rem)
+    clamp(0.7rem, 1.2vh, 0.95rem);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  color: rgba(238, 247, 255, 0.88);
+}
+
+.flow-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.flow-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+}
+
+/* Toggles sit on dark terminal — invert the home-screen range-toggle look */
+.flow-panel .range-toggle {
+  background: rgba(238, 247, 255, 0.04);
+  border-color: rgba(238, 247, 255, 0.12);
+}
+.flow-panel .range-toggle-btn {
+  color: var(--flow-ink-label, rgba(238, 247, 255, 0.58));
+  font-size: clamp(0.62rem, 0.72vw, 0.7rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  transition:
+    background 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.flow-panel .range-toggle-btn:active {
+  transform: scale(0.96);
+}
+.flow-panel .range-toggle-btn.is-active {
+  background: rgba(238, 247, 255, 0.92);
+  color: #050604;
+  letter-spacing: 0.06em;
+}
+
+.flow-toolbar-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-caption), 0.72vw, var(--flow-type-label));
+  font-weight: 600;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  color: var(--flow-ink-label);
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+/* Stats + pool chips share one band so wide screens don’t leave a dead right half */
+.flow-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.65rem clamp(0.85rem, 2vw, 1.5rem);
+  min-width: 0;
+  width: 100%;
+}
+
+.flow-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: clamp(0.75rem, 2vw, 1.6rem);
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.flow-stat {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+/* Value-first hierarchy (distilled stats) */
+.flow-stat .flow-stat-value {
+  order: 0;
+}
+.flow-stat .flow-stat-label {
+  order: 1;
+}
+
+.flow-stat-label {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-caption), 0.65vw, var(--flow-type-label));
+  font-weight: 600;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  color: var(--flow-ink-label);
+  line-height: 1.35;
+}
+
+.flow-stat-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: var(--flow-type-value);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--flow-ink-value);
+}
+
+.flow-stat-quiet {
+  color: rgba(238, 247, 255, 0.42);
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.flow-pool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.65rem;
+  border: 1px solid rgba(238, 247, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.04);
+  color: var(--flow-ink-soft);
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-caption), 0.7vw, var(--flow-type-ui));
+  font-weight: 600;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.flow-chip:active {
+  transform: scale(0.97);
+}
+
+.flow-chip-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: var(--flow-track-tight);
+  color: var(--flow-ink-muted);
+}
+
+.flow-chip:hover,
+.flow-chip:focus-visible,
+.flow-chip.is-on {
+  background-color: var(--seg-color, #36c5b0);
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.42) 0 0.55px,
+    transparent 0.75px
+  );
+  background-size: 3px 3px;
+  background-repeat: repeat;
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.96);
+  outline: none;
+}
+
+.flow-chip:hover .flow-chip-count,
+.flow-chip:focus-visible .flow-chip-count,
+.flow-chip.is-on .flow-chip-count {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.flow-chip.is-dim {
+  opacity: 0.38;
+}
+
+.flow-chip-clear {
+  border: 1px dashed rgba(238, 247, 255, 0.18);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--flow-ink-label);
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-caption), 0.65vw, var(--flow-type-label));
+  font-weight: 600;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  padding: 0.32rem 0.7rem;
+  cursor: pointer;
+}
+.flow-chip-clear:hover {
+  color: var(--flow-ink-value);
+  border-color: rgba(238, 247, 255, 0.35);
+}
+
+.flow-filter-hint {
+  margin: -0.25rem 0 0;
+  font-family: var(--mono);
+  font-size: var(--flow-type-caption);
+  font-weight: 500;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  color: var(--flow-ink-muted);
+  line-height: 1.4;
+}
+
+.flow-load-more-meta-alone {
+  margin: 0;
+  text-align: center;
+  padding-top: 0.15rem;
+}
+
+.flow-load-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.2rem;
+  padding-top: 0.15rem;
+}
+
+.flow-load-more-btn {
+  border: 1px solid rgba(238, 247, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.06);
+  color: rgba(238, 247, 255, 0.78);
+  font-family: var(--mono);
+  font-size: clamp(0.56rem, 0.7vw, 0.68rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+.flow-load-more-btn:hover {
+  background: rgba(238, 247, 255, 0.12);
+  border-color: rgba(238, 247, 255, 0.28);
+}
+
+.flow-load-more-meta {
+  font-family: var(--mono);
+  font-size: clamp(0.48rem, 0.6vw, 0.58rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.36);
+}
+
+.flow-body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 1fr) minmax(8rem, 1.4fr) minmax(7.5rem, 1fr);
+  gap: clamp(0.35rem, 1vw, 0.75rem);
+  min-height: 0;
+  /* Fill remaining card height so list cols aren't short of the bottom */
+  align-items: stretch;
+}
+
+.flow-col {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Scrollport fills the column under the fixed head */
+.flow-list-frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-list {
+  margin: 0;
+  padding: 0.55rem 0 0.85rem; /* room so first/last rows clear the fades */
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  max-height: none;
+  scroll-padding-block: 0.75rem;
+  scrollbar-width: thin;
+}
+
+/* Fixed edge fades — dark → transparent; rows scroll underneath */
+.flow-list-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1.35rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.flow-list-fade-top {
+  top: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 10, 9, 0.98) 0%,
+    rgba(8, 10, 9, 0.55) 42%,
+    rgba(8, 10, 9, 0) 100%
+  );
+}
+.flow-list-fade-bot {
+  bottom: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(8, 10, 9, 0.98) 0%,
+    rgba(8, 10, 9, 0.55) 42%,
+    rgba(8, 10, 9, 0) 100%
+  );
+}
+
+.flow-list-load {
+  position: sticky;
+  bottom: 0;
+  padding: 0.45rem 0.2rem 0.35rem;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 10, 9, 0) 0%,
+    rgba(8, 10, 9, 0.92) 28%,
+    rgba(8, 10, 9, 0.98) 100%
+  );
+  z-index: 2;
+}
+
+.flow-col-load-btn {
+  width: 100%;
+  border: 1px solid rgba(238, 247, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.06);
+  color: rgba(238, 247, 255, 0.72);
+  font-family: var(--mono);
+  font-size: clamp(0.48rem, 0.6vw, 0.58rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.42rem 0.55rem;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.flow-col-load-btn:hover {
+  background: rgba(238, 247, 255, 0.12);
+  border-color: rgba(238, 247, 255, 0.28);
+  color: rgba(238, 247, 255, 0.92);
+}
+
+.flow-list-more {
+  padding: 0.45rem 0.35rem 0.2rem;
+  font-family: var(--mono);
+  font-size: var(--flow-type-caption, 0.625rem);
+  font-weight: 600;
+  letter-spacing: var(--flow-track, 0.1em);
+  text-transform: uppercase;
+  color: var(--flow-ink-muted, rgba(238, 247, 255, 0.48));
+}
+
+.flow-stat-fee {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.flow-stat-fee-value {
+  color: #f0a06a;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.015em;
+}
+
+.flow-fee-of {
+  font-size: 0.78em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(240, 160, 106, 0.72);
+}
+
+.flow-fee-swatch {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.35rem;
+  border-radius: 1px;
+  background: #e07a3a;
+  vertical-align: -0.05em;
+}
+
+/* Fixed track width; only the fill scrubs with list depth */
+.flow-fee-meter {
+  display: block;
+  margin-top: 0.35rem;
+  width: 100%;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(224, 122, 58, 0.16);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.flow-fee-meter-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.42) 0 0.55px,
+      transparent 0.75px
+    ),
+    #e07a3a;
+  background-size: 3px 3px, auto;
+  /* transform, not width — avoids layout thrash while scrubbing */
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flow-list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  padding: 0.1rem 0.35rem 0.45rem;
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-caption), 0.62vw, var(--flow-type-label));
+  font-weight: 600;
+  letter-spacing: var(--flow-track);
+  text-transform: uppercase;
+  color: var(--flow-ink-label);
+  line-height: 1.35;
+}
+
+.flow-list-empty {
+  padding: 0.55rem 0.35rem;
+  font-family: var(--mono);
+  font-size: var(--flow-type-ui);
+  letter-spacing: var(--flow-track-tight);
+  color: var(--flow-ink-muted);
+  line-height: 1.4;
+}
+
+.flow-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.4rem;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--flow-ink-soft);
+  font-family: var(--mono);
+  font-size: clamp(var(--flow-type-label), 0.78vw, var(--flow-type-ui));
+  font-weight: 500;
+  letter-spacing: var(--flow-track-tight);
+  line-height: 1.25;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.flow-row:active {
+  transform: scale(0.985);
+}
+
+.flow-list-out .flow-row {
+  text-align: right;
+  flex-direction: row;
+}
+
+/* Withdrawal rows: paper/grey hover (not pool teal) — white labels keep contrast */
+.flow-list-out .flow-row:hover,
+.flow-list-out .flow-row:focus-visible,
+.flow-list-out .flow-row.is-on,
+.flow-row-out:hover,
+.flow-row-out:focus-visible,
+.flow-row-out.is-on {
+  background-color: var(--seg-color, hsl(210 12% 44%));
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.flow-list-out .flow-row:hover .flow-row-swatch,
+.flow-list-out .flow-row:focus-visible .flow-row-swatch,
+.flow-list-out .flow-row.is-on .flow-row-swatch,
+.flow-row-out:hover .flow-row-swatch,
+.flow-row-out:focus-visible .flow-row-swatch,
+.flow-row-out.is-on .flow-row-swatch {
+  background: rgba(238, 247, 255, 0.82);
+}
+
+.flow-list-out .flow-row:hover .flow-row-amt,
+.flow-list-out .flow-row:focus-visible .flow-row-amt,
+.flow-list-out .flow-row.is-on .flow-row-amt {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.flow-row-swatch {
+  /* Default size; per-denom overrides via data-pool on the row */
+  flex: 0 0 auto;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 1px;
+  background: rgba(238, 247, 255, 0.16);
+  transition: background 160ms ease, width 160ms ease, height 160ms ease;
+}
+
+.flow-row[data-pool="0.1"] .flow-row-swatch {
+  width: 0.32rem;
+  height: 0.32rem;
+}
+.flow-row[data-pool="1"] .flow-row-swatch {
+  width: 0.42rem;
+  height: 0.42rem;
+}
+.flow-row[data-pool="10"] .flow-row-swatch {
+  width: 0.55rem;
+  height: 0.55rem;
+}
+.flow-row[data-pool="100"] .flow-row-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.flow-row-addr {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.flow-row-amt {
+  flex: 0 0 auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--flow-track-tight);
+  color: var(--flow-ink-label);
+  white-space: nowrap;
+}
+
+.flow-row:hover,
+.flow-row:focus-visible,
+.flow-row.is-on {
+  background-color: var(--seg-color, #36c5b0);
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.42) 0 0.55px,
+    transparent 0.75px
+  );
+  background-size: 3px 3px;
+  background-repeat: repeat;
+  color: rgba(255, 255, 255, 0.96);
+  outline: none;
+}
+
+.flow-row:hover .flow-row-amt,
+.flow-row:focus-visible .flow-row-amt,
+.flow-row.is-on .flow-row-amt {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.flow-row:hover .flow-row-swatch,
+.flow-row:focus-visible .flow-row-swatch,
+.flow-row.is-on .flow-row-swatch {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.flow-canvas-wrap {
+  position: relative;
+  height: 100%;
+  min-height: clamp(14rem, 40svh, 24rem);
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(238, 247, 255, 0.06);
+  overflow: hidden;
+}
+
+.flow-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+/* Screen-reader only disclaimer for the decorative canvas */
+.flow-canvas-sr-note {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-fee-meter-fill,
+  .flow-row,
+  .flow-chip,
+  .flow-panel .range-toggle-btn {
+    transition: none !important;
+  }
+  .flow-row:active,
+  .flow-chip:active,
+  .flow-panel .range-toggle-btn:active {
+    transform: none;
+  }
+}
+
+.flow-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1.2rem;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Route-level error for /flow */
+.flow-error-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.25rem;
+  background: #050604;
+  color: rgba(238, 247, 255, 0.88);
+}
+.flow-error-card {
+  max-width: 28rem;
+  width: 100%;
+  padding: 1.5rem 1.35rem;
+  border: 1px solid rgba(238, 247, 255, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(12, 16, 14, 0.96);
+}
+.flow-error-kicker {
+  margin: 0 0 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.42);
+}
+.flow-error-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+  color: rgba(238, 247, 255, 0.94);
+  text-wrap: balance;
+}
+.flow-error-body {
+  margin: 0 0 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(238, 247, 255, 0.62);
+  text-wrap: pretty;
+}
+.flow-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.1rem;
+}
+.flow-error-btn {
+  border: 1px solid rgba(238, 247, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.92);
+  color: #050604;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.95rem;
+  cursor: pointer;
+}
+.flow-error-btn:hover {
+  background: #fff;
+}
+.flow-error-btn:focus-visible {
+  outline: 2px solid rgba(159, 217, 255, 0.85);
+  outline-offset: 2px;
+}
+.flow-error-link {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.55);
+  text-decoration: underline;
+  text-decoration-color: rgba(238, 247, 255, 0.28);
+  text-underline-offset: 0.18em;
+}
+.flow-error-link:hover {
+  color: rgba(238, 247, 255, 0.92);
+}
+
+.flow-empty-title {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 0.8vw, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.72);
+}
+
+.flow-empty-body {
+  margin: 0;
+  max-width: 36ch;
+  font-family: var(--sans);
+  font-size: clamp(0.875rem, 0.95vw, 0.95rem);
+  line-height: 1.55;
+  color: rgba(238, 247, 255, 0.62);
+  text-wrap: pretty;
+}
+
+.flow-footnote {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.48rem, 0.6vw, 0.58rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(238, 247, 255, 0.32);
+  text-wrap: pretty;
+}
+
+.flow-window-tag {
+  color: var(--flow-ink-muted, rgba(238, 247, 255, 0.48));
+  letter-spacing: var(--flow-track-tight, 0.04em);
+}
+
+.flow-code {
+  font-family: var(--mono);
+  font-size: 0.95em;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(238, 247, 255, 0.45);
+}
+
+/* Input rows always show address hue on the swatch (coinjoin-style) */
+.flow-row-input .flow-row-swatch {
+  background: var(--seg-color, rgba(238, 247, 255, 0.16));
+}
+
+.site-footer a {
+  color: rgba(238, 247, 255, 0.55);
+  transition: color 160ms ease;
+}
+.site-footer a:hover {
+  color: rgba(238, 247, 255, 0.9);
+}
+
+/* Quiet index ↔ Tornado flow switcher under the brand mast */
+.site-view-nav {
+  margin: 0.85rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+  font-family: var(--mono);
+  font-size: clamp(0.62rem, 0.75vw, 0.72rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.site-view-nav-sep {
+  color: rgba(238, 247, 255, 0.28);
+  user-select: none;
+}
+
+.site-view-nav-link {
+  color: rgba(238, 247, 255, 0.42);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 0.08rem;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.site-view-nav-link:hover {
+  color: rgba(238, 247, 255, 0.88);
+  border-bottom-color: rgba(238, 247, 255, 0.28);
+}
+.site-view-nav-link.is-active {
+  color: rgba(238, 247, 255, 0.92);
+  border-bottom-color: rgba(238, 247, 255, 0.55);
+}
+
+/* —— Small / medium: deposits → viz → withdrawals (touch-first stack) —— */
+@media (max-width: 900px) {
+  .flow-stage {
+    --screen-h: auto;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .flow-screen-frame {
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .flow-screen-content {
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+    box-sizing: border-box;
+  }
+
+  .flow-panel {
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: visible;
+    gap: 0.65rem;
+    padding-inline: clamp(0.7rem, 2.5vw, 1rem);
+  }
+
+  .flow-chrome {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .flow-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem 0.75rem;
+    flex: none;
+    width: 100%;
+  }
+
+  .flow-stat-fee {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .flow-fee-meter {
+    width: 100%;
+    max-width: 14rem;
+  }
+
+  .flow-pool-chips {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    margin-left: 0;
+    overflow-x: auto;
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.3rem;
+    padding-bottom: 0.15rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .flow-chip {
+    flex: 0 0 auto;
+    min-height: 2.5rem; /* ≥44px touch */
+    padding: 0.4rem 0.7rem;
+  }
+
+  .flow-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
+    height: auto;
+    overflow-x: hidden;
+  }
+
+  .flow-col-in {
+    order: 1;
+  }
+
+  .flow-canvas-wrap {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    /* Leave room for both txn strips + chrome on a phone viewport */
+    min-height: 10rem;
+    max-height: min(28svh, 13.5rem);
+    height: auto;
+    aspect-ratio: 1.45 / 1;
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+
+  .flow-col-out {
+    order: 3;
+  }
+
+  .flow-col {
+    flex: 0 0 auto;
+    height: auto;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .flow-list-frame {
+    flex: 0 0 auto;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .flow-list-head {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 0.25rem 0.3rem;
+    margin: 0;
+    background: none;
+    border: none;
+    gap: 0.5rem;
+    font-size: 0.52rem;
+  }
+
+  /* Horizontal scroller of tall chips — scroll stays inside the card */
+  .flow-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.4rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: none;
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    padding: 0.25rem 0.85rem 0.45rem;
+    scroll-padding-inline: 0.85rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+
+  .flow-list > li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .flow-list-fade {
+    top: 0;
+    bottom: 0;
+    width: 1.25rem;
+    height: auto;
+  }
+  .flow-list-fade-top {
+    left: 0;
+    right: auto;
+    background: linear-gradient(
+      90deg,
+      rgba(8, 10, 9, 0.98) 0%,
+      rgba(8, 10, 9, 0.5) 45%,
+      rgba(8, 10, 9, 0) 100%
+    );
+  }
+  .flow-list-fade-bot {
+    right: 0;
+    left: auto;
+    bottom: 0;
+    background: linear-gradient(
+      270deg,
+      rgba(8, 10, 9, 0.98) 0%,
+      rgba(8, 10, 9, 0.5) 45%,
+      rgba(8, 10, 9, 0) 100%
+    );
+  }
+
+  /*
+   * Tall chips: true vertical type (writing-mode), not angled illegible text.
+   * Width ≥44px for thumb; swatch sits toward the canvas (bottom for deposits).
+   */
+  .flow-row,
+  .flow-list-out .flow-row {
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.28rem;
+    width: 2.85rem; /* ~45.6px */
+    min-width: 2.85rem;
+    max-width: 3rem;
+    min-height: 5.75rem;
+    height: 5.75rem;
+    padding: 0.4rem 0.2rem 0.45rem;
+    text-align: center;
+    border-radius: 0.4rem;
+  }
+
+  .flow-row-input .flow-row-amt {
+    order: 1;
+  }
+  .flow-row-input .flow-row-addr {
+    order: 2;
+  }
+  .flow-row-input .flow-row-swatch {
+    order: 3;
+  }
+
+  .flow-list-out .flow-row-swatch {
+    order: 1;
+  }
+  .flow-list-out .flow-row-amt {
+    order: 2;
+  }
+  .flow-list-out .flow-row-addr {
+    order: 3;
+  }
+
+  .flow-row-amt,
+  .flow-row-addr {
+    flex: 0 0 auto;
+    display: block;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* Upright vertical run — readable top→bottom after 180° flip */
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+  }
+
+  .flow-row-amt {
+    font-size: 0.62rem;
+    font-weight: 600;
+    max-height: 2.2rem;
+    color: rgba(238, 247, 255, 0.82);
+  }
+
+  .flow-row-addr {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 2.6rem;
+    font-size: 0.58rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: rgba(238, 247, 255, 0.78);
+  }
+
+  .flow-row-swatch {
+    flex: 0 0 auto;
+  }
+
+  /* Slightly larger swatches for thumb targeting on stacked */
+  .flow-row[data-pool="0.1"] .flow-row-swatch {
+    width: 0.4rem;
+    height: 0.4rem;
+  }
+  .flow-row[data-pool="1"] .flow-row-swatch {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+  .flow-row[data-pool="10"] .flow-row-swatch {
+    width: 0.62rem;
+    height: 0.62rem;
+  }
+  .flow-row[data-pool="100"] .flow-row-swatch {
+    width: 0.78rem;
+    height: 0.78rem;
+  }
+
+  .flow-list-empty,
+  .flow-list-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.85rem;
+    min-height: 5.75rem;
+    padding: 0.4rem 0.35rem;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+  }
+}
+
+/* —— Phone polish —— */
+@media (max-width: 640px) {
+  .flow-stage {
+    --screen-h: auto;
+    padding-left: clamp(0.65rem, 3.5vw, 1rem);
+    padding-right: clamp(0.65rem, 3.5vw, 1rem);
+    gap: 1.1rem;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  .flow-screen-frame {
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .flow-screen-content {
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .flow-panel {
+    min-height: 0;
+    height: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: visible;
+    gap: 0.65rem;
+    padding: 0.75rem 0.65rem 0.9rem;
+  }
+
+  .flow-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .flow-toolbar-meta {
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    gap: 0.25rem 0.35rem;
+  }
+
+  .flow-toolbar-actions {
+    justify-content: space-between;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .flow-panel .range-toggle-btn {
+    padding: 0.42rem 0.5rem;
+    font-size: 0.55rem;
+    min-height: 2.4rem;
+  }
+
+  .flow-stat-value {
+    font-size: 1rem;
+  }
+
+  .flow-fee-meter {
+    max-width: 100%;
+  }
+
+  .flow-chip {
+    min-height: 2.5rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.52rem;
+  }
+
+  .flow-filter-hint {
+    display: none;
+  }
+
+  /* Phone: prioritize window control; speed defaults to 10× */
+  .flow-canvas-wrap {
+    min-height: 9.25rem;
+    max-height: min(24svh, 11.5rem);
+    aspect-ratio: 1.5 / 1;
+  }
+
+  .flow-row,
+  .flow-list-out .flow-row {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.9rem;
+    min-height: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .flow-row-amt {
+    font-size: 0.55rem;
+    max-height: 1.9rem;
+  }
+
+  .flow-row-addr {
+    font-size: 0.52rem;
+    max-height: 2.35rem;
+  }
+
+  .flow-list-empty,
+  .flow-list-more {
+    min-width: 2.75rem;
+    min-height: 5.5rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .flow-stats {
+    grid-template-columns: 1fr;
+  }
+  .flow-stat-fee {
+    grid-column: auto;
+  }
+  .flow-canvas-wrap {
+    min-height: 8.5rem;
+    max-height: min(22svh, 10.5rem);
+  }
+  .flow-row,
+  .flow-list-out .flow-row {
+    width: 2.65rem;
+    min-width: 2.65rem;
+    max-width: 2.75rem;
+    min-height: 5.25rem;
+    height: 5.25rem;
+  }
+  .flow-list-empty,
+  .flow-list-more {
+    min-width: 2.65rem;
+    min-height: 5.25rem;
+  }
+  /* Drop secondary scroll cue on very narrow */
+  .flow-list-head span:last-child {
+    display: none;
+  }
+}
+
+/* =========================================================================
  * Small screens — keep the screen, drop the lens halo, tighten spacing
  * ========================================================================= */
 
@@ -1015,6 +2424,10 @@ a { color: inherit; text-decoration: none; }
     /* Shorter screen so the digit row + sublabel + bar + mini-chart fit
      * within an iPhone 14 / Pro / Plus viewport without scroll-bleed. */
     --screen-h: clamp(15rem, 46svh, 22rem);
+  }
+
+  .flow-stage {
+    --screen-h: clamp(28rem, 72svh, 40rem);
   }
 
   .hero-shhh { max-width: 100%; }

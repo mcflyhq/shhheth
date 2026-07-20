@@ -17,7 +17,7 @@ export type ShareInput = {
 };
 
 export function buildShareText({ total, delta, deltaZero, topMover }: ShareInput): string {
-  const lines = [`${total} ETH has been shielded on Ethereum — all-time. 🤫`];
+  const lines = [`${total} ETH has been shielded on Ethereum, all-time. 🤫`];
 
   if (delta && !deltaZero) {
     const mover =

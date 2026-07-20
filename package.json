@@ -10,6 +10,7 @@
     "subgraph:build": "pnpm --filter \"subgraph-*\" build",
     "subgraph:deploy:aztec": "pnpm --filter subgraph-aztec deploy",
     "subgraph:deploy:tornado": "pnpm --filter subgraph-tornado deploy",
+    "subgraph:deploy:tornado-flow": "pnpm --filter subgraph-tornado deploy:flow",
     "subgraph:deploy:railgun": "pnpm --filter subgraph-railgun deploy",
     "subgraph:deploy:0xbow": "pnpm --filter subgraph-0xbow deploy"
   },

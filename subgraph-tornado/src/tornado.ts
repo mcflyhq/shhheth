@@ -1,27 +1,33 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   TornadoGlobal,
   TornadoDailyInflow,
   TornadoPoolContribution,
+  TornadoDeposit,
+  TornadoWithdrawal,
 } from "../generated/schema";
 import { Deposit as DepositEvent } from "../generated/Tornado01ETH/TornadoPool";
+import { Withdrawal as WithdrawalEvent } from "../generated/Tornado01ETH/TornadoPool";
 
 const ONE_DAY = BigInt.fromI32(86400);
 
-const DENOMINATIONS: Map<string, BigInt> = new Map<string, BigInt>();
-DENOMINATIONS.set("0.1", BigInt.fromString("100000000000000000"));
-DENOMINATIONS.set("1", BigInt.fromString("1000000000000000000"));
-DENOMINATIONS.set("10", BigInt.fromString("10000000000000000000"));
-DENOMINATIONS.set("100", BigInt.fromString("100000000000000000000"));
+function denomWei(pool: string): BigInt {
+  if (pool == "0.1") return BigInt.fromString("100000000000000000");
+  if (pool == "1") return BigInt.fromString("1000000000000000000");
+  if (pool == "10") return BigInt.fromString("10000000000000000000");
+  return BigInt.fromString("100000000000000000000"); // 100
+}
 
 function getDayId(timestamp: BigInt): BigInt {
   return timestamp.div(ONE_DAY);
 }
 
 function formatDate(timestamp: BigInt): string {
-  // Simple epoch day based date label (frontend can prettify)
-  let day = getDayId(timestamp);
-  return day.toString();
+  return getDayId(timestamp).toString();
+}
+
+function eventId(txHash: Bytes, logIndex: BigInt): string {
+  return txHash.toHexString() + "-" + logIndex.toString();
 }
 
 function updateGlobal(value: BigInt, blockNumber: BigInt, timestamp: BigInt): void {
@@ -35,7 +41,6 @@ function updateGlobal(value: BigInt, blockNumber: BigInt, timestamp: BigInt): vo
   global.lastUpdatedTimestamp = timestamp;
   global.save();
 
-  // Daily inflow
   let dayId = getDayId(timestamp).toString();
   let day = TornadoDailyInflow.load(dayId);
   if (day == null) {
@@ -58,27 +63,69 @@ function updatePool(pool: string, value: BigInt): void {
   contrib.save();
 }
 
-// Handlers for each pool
+function recordDeposit(pool: string, event: DepositEvent): void {
+  let value = denomWei(pool);
+  updateGlobal(value, event.block.number, event.block.timestamp);
+  updatePool(pool, value);
+
+  let row = new TornadoDeposit(eventId(event.transaction.hash, event.logIndex));
+  row.pool = pool;
+  row.amount = value;
+  row.from = event.transaction.from;
+  row.commitment = event.params.commitment;
+  row.leafIndex = event.params.leafIndex;
+  row.timestamp = event.block.timestamp;
+  row.blockNumber = event.block.number;
+  row.txHash = event.transaction.hash;
+  row.logIndex = event.logIndex;
+  row.save();
+}
+
+function recordWithdrawal(pool: string, event: WithdrawalEvent): void {
+  let value = denomWei(pool);
+
+  let row = new TornadoWithdrawal(eventId(event.transaction.hash, event.logIndex));
+  row.pool = pool;
+  row.amount = value;
+  row.to = event.params.to;
+  row.relayer = event.params.relayer;
+  row.nullifierHash = event.params.nullifierHash;
+  row.fee = event.params.fee;
+  row.timestamp = event.block.timestamp;
+  row.blockNumber = event.block.number;
+  row.txHash = event.transaction.hash;
+  row.logIndex = event.logIndex;
+  row.save();
+}
+
+// ---- 0.1 ETH pool ----
 export function handleDeposit01(event: DepositEvent): void {
-  let value = DENOMINATIONS.get("0.1") as BigInt;
-  updateGlobal(value, event.block.number, event.block.timestamp);
-  updatePool("0.1", value);
+  recordDeposit("0.1", event);
+}
+export function handleWithdrawal01(event: WithdrawalEvent): void {
+  recordWithdrawal("0.1", event);
 }
 
+// ---- 1 ETH pool ----
 export function handleDeposit1(event: DepositEvent): void {
-  let value = DENOMINATIONS.get("1") as BigInt;
-  updateGlobal(value, event.block.number, event.block.timestamp);
-  updatePool("1", value);
+  recordDeposit("1", event);
+}
+export function handleWithdrawal1(event: WithdrawalEvent): void {
+  recordWithdrawal("1", event);
 }
 
+// ---- 10 ETH pool ----
 export function handleDeposit10(event: DepositEvent): void {
-  let value = DENOMINATIONS.get("10") as BigInt;
-  updateGlobal(value, event.block.number, event.block.timestamp);
-  updatePool("10", value);
+  recordDeposit("10", event);
+}
+export function handleWithdrawal10(event: WithdrawalEvent): void {
+  recordWithdrawal("10", event);
 }
 
+// ---- 100 ETH pool ----
 export function handleDeposit100(event: DepositEvent): void {
-  let value = DENOMINATIONS.get("100") as BigInt;
-  updateGlobal(value, event.block.number, event.block.timestamp);
-  updatePool("100", value);
+  recordDeposit("100", event);
+}
+export function handleWithdrawal100(event: WithdrawalEvent): void {
+  recordWithdrawal("100", event);
 }
