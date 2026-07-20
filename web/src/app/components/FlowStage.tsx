@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import FlowViz from "./FlowViz";
+import FlowPoolGrid from "./FlowPoolGrid";
 import PageMast from "./PageMast";
 import type { FlowWindow } from "@/lib/flow";
 
-type SerializableSnapshot = {
+export type SerializableSnapshot = {
   window: FlowWindow;
   since: number;
   deposits: Array<{
@@ -44,8 +44,8 @@ type Props = {
 };
 
 /**
- * Stage shell shared with the odometer: dark canvas, ambient gradients,
- * cursor-trail dots, glass screen. Mast matches the quiet index brand.
+ * Tornado flow stage: brand mast, glass screen with pool-grid mosaic,
+ * methodology + back link. Single surface at `/flow`.
  */
 export default function FlowStage({ snapshots }: Props) {
   const [cursorInStage, setCursorInStage] = useState(false);
@@ -101,7 +101,7 @@ export default function FlowStage({ snapshots }: Props) {
         <div className="screen-glow" />
         <div className="screen-surface" />
         <div className="screen-content flow-screen-content">
-          <FlowViz snapshots={snapshots} />
+          <FlowPoolGrid snapshots={snapshots} />
         </div>
       </div>
 

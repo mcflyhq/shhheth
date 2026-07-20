@@ -33,7 +33,7 @@ import {
   packItems,
   type PlacedBlock,
 } from "@/lib/flow-grid-pack";
-import type { SerializableSnapshot } from "./FlowGridStage";
+import type { SerializableSnapshot } from "./FlowStage";
 
 type Props = {
   snapshots: Record<FlowWindow, SerializableSnapshot>;

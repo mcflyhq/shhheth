@@ -10,9 +10,10 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  // flow.shhheth.com → tornado flow surface
   if (pathname === "/" || pathname === "") {
     const url = request.nextUrl.clone();
-    url.pathname = "/flow/grid";
+    url.pathname = "/flow";
     return NextResponse.rewrite(url);
   }
 
