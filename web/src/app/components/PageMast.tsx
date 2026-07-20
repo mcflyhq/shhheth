@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { FLOW_URL, SITE_URL } from "@/lib/site";
 
 export type PageView = "index" | "flow";
 
@@ -12,7 +13,7 @@ type Props = {
 
 /**
  * Shared brand mast: hollow "shhh" logo, quiet-index subtitle, and a
- * two-item nav between the index and Tornado pool flow.
+ * two-item nav between the index (shhheth.com) and Tornado flow (flow.shhheth.com).
  */
 export default function PageMast({ view }: Props) {
   const [letterBox, setLetterBox] = useState({ x: 0, w: 360 });
@@ -39,6 +40,12 @@ export default function PageMast({ view }: Props) {
     window.addEventListener("resize", measure, { passive: true });
     return () => window.removeEventListener("resize", measure);
   }, []);
+
+  const indexHref = view === "index" ? "/" : SITE_URL;
+  const flowHref = view === "flow" ? "/" : FLOW_URL;
+  // Cross-origin needs a plain anchor so we leave the other product host.
+  const IndexTag = view === "index" ? Link : "a";
+  const FlowTag = view === "flow" ? Link : "a";
 
   return (
     <div className="page-mast">
@@ -94,23 +101,23 @@ export default function PageMast({ view }: Props) {
           : "The quiet index for shielded ETH."}
       </p>
       <nav className="site-view-nav" aria-label="Site views">
-        <Link
-          href="/"
+        <IndexTag
+          href={indexHref}
           className={`site-view-nav-link${view === "index" ? " is-active" : ""}`}
           aria-current={view === "index" ? "page" : undefined}
         >
           quiet index
-        </Link>
+        </IndexTag>
         <span className="site-view-nav-sep" aria-hidden="true">
           ·
         </span>
-        <Link
-          href="/flow"
+        <FlowTag
+          href={flowHref}
           className={`site-view-nav-link${view === "flow" ? " is-active" : ""}`}
           aria-current={view === "flow" ? "page" : undefined}
         >
           tornado flow
-        </Link>
+        </FlowTag>
       </nav>
     </div>
   );

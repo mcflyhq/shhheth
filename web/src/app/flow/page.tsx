@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import FlowStage from "../components/FlowStage";
 import { getFlowSnapshots } from "@/lib/flow-data";
 import type { FlowWindow } from "@/lib/flow";
+import { FLOW_URL } from "@/lib/site";
 
 export const revalidate = 60;
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shhheth.com";
 
 export const metadata: Metadata = {
   title: "tornado flow · shhheth",
   description:
     "Tornado Cash only: deposits and withdrawals through ETH pools. Not the full quiet index.",
+  metadataBase: new URL(FLOW_URL),
   openGraph: {
     title: "tornado flow · shhheth",
     description:
       "Tornado Cash ETH pool flow only. Deposits in, withdrawals out.",
-    url: `${SITE_URL}/flow`,
+    url: FLOW_URL,
     siteName: "shhheth",
     type: "website",
   },
@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     title: "tornado flow · shhheth",
     description:
       "Tornado Cash ETH pool flow only. Deposits in, withdrawals out.",
+  },
+  alternates: {
+    canonical: FLOW_URL,
   },
 };
 

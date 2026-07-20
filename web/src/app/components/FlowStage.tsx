@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
-import Link from "next/link";
 import FlowPoolGrid from "./FlowPoolGrid";
 import PageMast from "./PageMast";
 import type { FlowWindow } from "@/lib/flow";
+import { SITE_URL } from "@/lib/site";
 
 export type SerializableSnapshot = {
   window: FlowWindow;
@@ -45,7 +45,7 @@ type Props = {
 
 /**
  * Tornado flow stage: brand mast, glass screen with pool-grid mosaic,
- * methodology + back link. Single surface at `/flow`.
+ * methodology + back link. Public surface is flow.shhheth.com only.
  */
 export default function FlowStage({ snapshots }: Props) {
   const [cursorInStage, setCursorInStage] = useState(false);
@@ -122,15 +122,15 @@ export default function FlowStage({ snapshots }: Props) {
               Tap a size to filter. Scroll either list for more history. Relayer
               fees read full at the top of the list and shrink as you scroll
               older. All protocols together live on the{" "}
-              <Link href="/" className="flow-inline-link">
+              <a href={SITE_URL} className="flow-inline-link">
                 quiet index
-              </Link>
+              </a>
               .
             </p>
           </div>
         </section>
         <footer className="site-footer">
-          <Link href="/">Back to quiet index</Link>
+          <a href={SITE_URL}>Back to quiet index</a>
         </footer>
       </div>
     </section>

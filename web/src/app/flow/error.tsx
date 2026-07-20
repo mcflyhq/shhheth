@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
+import { SITE_URL } from "@/lib/site";
 
 export default function FlowError({
   error,
@@ -27,9 +27,9 @@ export default function FlowError({
           <button type="button" className="flow-error-btn" onClick={reset}>
             Try again
           </button>
-          <Link href="/" className="flow-error-link">
+          <a href={SITE_URL} className="flow-error-link">
             Back to quiet index
-          </Link>
+          </a>
         </div>
       </div>
     </main>

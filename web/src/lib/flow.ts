@@ -136,7 +136,7 @@ export function isFlowPool(s: string): s is FlowPool {
 export const FLOW_LIST_PAGE = 60;
 
 /**
- * Soft UI default for main `/flow` list DOM (virtualization later).
+ * Soft UI default for flow list DOM (virtualization later).
  * Grid uses the full fetched series for pack + can load the full list.
  */
 export const FLOW_LIST_MAX = 400;

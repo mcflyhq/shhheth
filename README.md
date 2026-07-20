@@ -6,7 +6,7 @@ This is a cumulative all-time deposit count, not TVL — withdrawals do not redu
 
 ## Workspaces
 
-- `web/` — Next.js 16 dashboard (the odometer) + `/flow` (pool flow)
+- `web/` — Next.js 16 dashboard (the odometer) + Tornado flow on `flow.shhheth.com`
 - `subgraph-aztec/` — Aztec Connect shielded ETH
 - `subgraph-tornado/` — Tornado Cash ETH pools (cumulative + per-event for Flow)
 - `subgraph-railgun/` — Railgun shielded ETH
@@ -15,11 +15,12 @@ This is a cumulative all-time deposit count, not TVL — withdrawals do not redu
 One immutable subgraph deployment per protocol, so adding or redeploying one
 never re-indexes the others.
 
-## Flow (`/flow`)
+## Flow (`flow.shhheth.com`)
 
-Bipartite deposit ↔ withdrawal view for Tornado Cash ETH pools over a time
-window (24h / 7d). Quiet ink by default; denomination color + dot texture on
-hover — same language as the home inflow chart.
+Public only on the flow subdomain (not `shhheth.com/flow`). Pool-grid mosaic of
+Tornado Cash ETH deposits ↔ withdrawals over a time window (24h / 7d). Quiet
+ink by default; denomination color + dot texture on hover — same language as
+the home inflow chart.
 
 Uses `shhheth-tornado-flow/1.0.0` event entities (`TornadoDeposit`,
 `TornadoWithdrawal`) with a recent `startBlock` so 24h/7d windows index
