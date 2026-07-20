@@ -120,8 +120,8 @@ export default function FlowStage({ snapshots }: Props) {
             </p>
             <p>
               Tap a size to filter. Scroll either list for more history. Relayer
-              fees read full at the top of the list and shrink as you scroll
-              older. All protocols together live on the{" "}
+              fees are the window total above the pool — static for the selected
+              range. All protocols together live on the{" "}
               <a href={SITE_URL} className="flow-inline-link">
                 quiet index
               </a>
