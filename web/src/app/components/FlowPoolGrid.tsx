@@ -360,8 +360,6 @@ function sampleFill(
     x,
     y,
     size: morph(Math.max(0, sizeT), from, Math.max(from, s)),
-    sizeW: morph(Math.max(0, sizeT), from, Math.max(from, bw)),
-    sizeH: morph(Math.max(0, sizeT), from, Math.max(from, bh)),
     alpha,
     phase,
   };
