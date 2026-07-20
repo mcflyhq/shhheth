@@ -144,7 +144,11 @@ type Layout = {
   mosaicH: number;
 };
 
-/** Approach dissolve + resurface targets: left of vertical bar, or above horizontal belt. */
+/**
+ * Approach dissolve + resurface targets.
+ * Resurface (rs*) is the in-bar pop origin — keep it centered so cubes do not
+ * bloom from the left half of the shell.
+ */
 function approachPorts(
   L: Layout,
   jitter: number,
@@ -154,31 +158,28 @@ function approachPorts(
   const midX = L.barLeft + L.barW * 0.5;
   const midY = (L.barTop + L.barBot) * 0.5;
   const barH = Math.max(1, L.barBot - L.barTop);
+  const j = jitter - 0.5; // -0.5 … +0.5
 
   if (L.stacked) {
-    const jX = (jitter - 0.5) * L.barW * 0.12;
+    // Enter from above the belt; pop near vertical top of shell, horizontal center
+    const jX = j * L.barW * 0.12;
     const padY = Math.min(6, barH * 0.12);
     const vanishY = L.barTop - (10 + jitter * 14);
     const vanishX = midX + jX * 0.5 + (fromX - midX) * 0.2;
     const rsY = Math.min(
-      Math.max(L.barTop + padY, L.barTop + barH * 0.28 + jitter * 0.15 * barH),
-      L.barBot - padY,
+      Math.max(L.barTop + padY, L.barTop + padY + jitter * 0.1 * barH),
+      midY,
     );
-    const rsX = Math.min(
-      Math.max(L.barLeft + 8, L.barLeft + L.barW * 0.28 + jitter * 0.2 * L.barW),
-      L.barLeft + L.barW - 8,
-    );
+    const rsX = midX + j * L.barW * 0.14;
     return { vanishX, vanishY, rsX, rsY };
   }
 
-  const jY = (jitter - 0.5) * barH * 0.1;
+  // Vertical bar: dissolve left of shell; resurface at center with light scatter
+  const jY = j * barH * 0.1;
   const vanishX = L.barLeft - (14 + jitter * 18);
   const vanishY = midY + jY * 0.5 + (fromY - midY) * 0.15;
-  const padX = Math.min(8, L.barW * 0.08);
-  const rsX = Math.min(
-    Math.max(L.barLeft + padX, L.barLeft + L.barW * 0.3 + jitter * L.barW * 0.15),
-    L.barLeft + L.barW - padX,
-  );
+  const scatterX = Math.min(L.barW * 0.14, Math.max(4, L.barW * 0.5 - 8));
+  const rsX = midX + j * scatterX;
   const rsY = midY + jY * 0.35;
   return { vanishX, vanishY, rsX, rsY };
 }
