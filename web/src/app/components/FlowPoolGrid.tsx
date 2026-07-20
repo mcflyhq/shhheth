@@ -59,13 +59,20 @@ const GRID_COLS_MAX = 40;
 const MAX_LIVE = 48;
 /** Never thinner than this — 7d was collapsing to a hairline. */
 const MIN_BAR_W = 100;
+/** Horizontal belt min thickness on stacked (mobile) layout. */
+const MIN_BAR_H_STACKED = 40;
+/** Match FlowViz / CSS: deposits → viz → withdrawals stack under 900px. */
+const STACKED_MQ = "(max-width: 900px)";
 
 /** More deposits → more columns so rows stay shorter and cells stay readable. */
-function packColsFor(depositCount: number): number {
-  if (depositCount <= 250) return GRID_COLS_MIN;
-  if (depositCount <= 800) return 24;
-  if (depositCount <= 2000) return 32;
-  return GRID_COLS_MAX;
+function packColsFor(depositCount: number, stacked = false): number {
+  let cols = GRID_COLS_MIN;
+  if (depositCount > 2000) cols = GRID_COLS_MAX;
+  else if (depositCount > 800) cols = 32;
+  else if (depositCount > 250) cols = 24;
+  // Wide short bar needs more columns so cells stay nearer-square
+  if (stacked) cols = Math.min(GRID_COLS_MAX, Math.max(cols, 28));
+  return cols;
 }
 const OUT_COLOR = "rgba(210, 225, 240, 0.9)";
 
@@ -119,6 +126,8 @@ type Layout = {
   w: number;
   h: number;
   dpr: number;
+  /** true = horizontal pool belt (mobile stack); false = tall vertical bar */
+  stacked: boolean;
   barLeft: number;
   barTop: number;
   barBot: number;
@@ -134,6 +143,45 @@ type Layout = {
   mosaicW: number;
   mosaicH: number;
 };
+
+/** Approach dissolve + resurface targets: left of vertical bar, or above horizontal belt. */
+function approachPorts(
+  L: Layout,
+  jitter: number,
+  fromX: number,
+  fromY: number,
+): { vanishX: number; vanishY: number; rsX: number; rsY: number } {
+  const midX = L.barLeft + L.barW * 0.5;
+  const midY = (L.barTop + L.barBot) * 0.5;
+  const barH = Math.max(1, L.barBot - L.barTop);
+
+  if (L.stacked) {
+    const jX = (jitter - 0.5) * L.barW * 0.12;
+    const padY = Math.min(6, barH * 0.12);
+    const vanishY = L.barTop - (10 + jitter * 14);
+    const vanishX = midX + jX * 0.5 + (fromX - midX) * 0.2;
+    const rsY = Math.min(
+      Math.max(L.barTop + padY, L.barTop + barH * 0.28 + jitter * 0.15 * barH),
+      L.barBot - padY,
+    );
+    const rsX = Math.min(
+      Math.max(L.barLeft + 8, L.barLeft + L.barW * 0.28 + jitter * 0.2 * L.barW),
+      L.barLeft + L.barW - 8,
+    );
+    return { vanishX, vanishY, rsX, rsY };
+  }
+
+  const jY = (jitter - 0.5) * barH * 0.1;
+  const vanishX = L.barLeft - (14 + jitter * 18);
+  const vanishY = midY + jY * 0.5 + (fromY - midY) * 0.15;
+  const padX = Math.min(8, L.barW * 0.08);
+  const rsX = Math.min(
+    Math.max(L.barLeft + padX, L.barLeft + L.barW * 0.3 + jitter * L.barW * 0.15),
+    L.barLeft + L.barW - padX,
+  );
+  const rsY = midY + jY * 0.35;
+  return { vanishX, vanishY, rsX, rsY };
+}
 
 function revive(s: SerializableSnapshot): FlowSnapshot {
   return {
@@ -213,29 +261,30 @@ function cellRect(p: Particle, L: Layout) {
  */
 function sampleIn(p: Particle, L: Layout, tRaw: number) {
   const t = ((tRaw % 1) + 1) % 1;
-  const midY = (L.barTop + L.barBot) * 0.5;
-  const barH = Math.max(1, L.barBot - L.barTop);
-  const jY = (p.jitter - 0.5) * barH * 0.1;
   const cell = cellRect(p, L);
   const target = cell.s;
-
-  const vanishX = L.barLeft - (14 + p.jitter * 18);
-  const vanishY = midY + jY * 0.5 + (p.anchorY - midY) * 0.15;
-  const padX = Math.min(8, L.barW * 0.08);
-  const rsX = Math.min(
-    Math.max(L.barLeft + padX, L.barLeft + L.barW * 0.3 + p.jitter * L.barW * 0.15),
-    L.barLeft + L.barW - padX,
+  const { vanishX, vanishY, rsX, rsY } = approachPorts(
+    L,
+    p.jitter,
+    p.anchorX,
+    p.anchorY,
   );
-  const rsY = midY + jY * 0.35;
   const from = Math.max(3, p.anchorSize || p.edge);
+  const midCtrl = L.stacked
+    ? {
+        cpx: (p.anchorX + vanishX) * 0.5 + (p.jitter - 0.5) * L.w * 0.08,
+        cpy: p.anchorY * 0.35 + vanishY * 0.55 - L.h * 0.06,
+      }
+    : {
+        cpx: p.anchorX * 0.3 + vanishX * 0.5 + L.w * 0.08,
+        cpy: (L.barTop + L.barBot) * 0.5 + (p.jitter - 0.5) * L.h * 0.12,
+      };
 
   // After first land (or fill already stamped): approach → dissolve only
   if (p.landedOnce) {
     const u = travelEase(t);
-    const cpx = p.anchorX * 0.3 + vanishX * 0.5 + L.w * 0.08;
-    const cpy = midY + (p.jitter - 0.5) * L.h * 0.12;
-    const x = bez(u, p.anchorX, cpx, vanishX);
-    const y = bez(u, p.anchorY, cpy, vanishY);
+    const x = bez(u, p.anchorX, midCtrl.cpx, vanishX);
+    const y = bez(u, p.anchorY, midCtrl.cpy, vanishY);
     let alpha = 1;
     if (u < 0.06) alpha = easeInOutCubic(u / 0.06);
     else if (u > 1 - FADE_OUT) {
@@ -254,10 +303,8 @@ function sampleIn(p: Particle, L: Layout, tRaw: number) {
   if (t < APPROACH_END) {
     phase = "approach";
     const u = travelEase(t / APPROACH_END);
-    const cpx = p.anchorX * 0.3 + vanishX * 0.5 + L.w * 0.08;
-    const cpy = midY + (p.jitter - 0.5) * L.h * 0.12;
-    x = bez(u, p.anchorX, cpx, vanishX);
-    y = bez(u, p.anchorY, cpy, vanishY);
+    x = bez(u, p.anchorX, midCtrl.cpx, vanishX);
+    y = bez(u, p.anchorY, midCtrl.cpy, vanishY);
     sizeT = u * 0.15;
     const fadeStart = 1 - FADE_OUT;
     if (u > fadeStart) {
@@ -290,31 +337,30 @@ function sampleIn(p: Particle, L: Layout, tRaw: number) {
   return { x, y, size, alpha, phase };
 }
 
-/** One-shot fill: left edge → dissolve → slot into pack cell (no list anchor). */
+/** One-shot fill: approach edge → dissolve → slot into pack cell (no list anchor). */
 function sampleFill(
   f: FillFlight,
   L: Layout,
   tRaw: number,
 ): { x: number; y: number; size: number; alpha: number; phase: FlyPhase } {
   const t = Math.min(1, Math.max(0, tRaw));
-  const midY = (L.barTop + L.barBot) * 0.5;
-  const barH = Math.max(1, L.barBot - L.barTop);
-  const jY = (f.jitter - 0.5) * barH * 0.1;
   const bw = f.cells * L.cellX;
   const bh = f.cells * L.cellY;
   const s = Math.max(2, Math.min(bw, bh));
   const cx = L.mosaicX + f.col * L.cellX + bw / 2;
   const cy = L.mosaicY + L.mosaicH - (f.row + f.cells) * L.cellY + bh / 2;
 
-  const vanishX = L.barLeft - (14 + f.jitter * 18);
-  const vanishY = midY + jY * 0.5 + (f.y0 - midY) * 0.2;
-  const padX = Math.min(8, L.barW * 0.08);
-  const rsX = Math.min(
-    Math.max(L.barLeft + padX, L.barLeft + L.barW * 0.28 + f.jitter * 0.2 * L.barW),
-    L.barLeft + L.barW - padX,
-  );
-  const rsY = midY + jY * 0.35;
+  const { vanishX, vanishY, rsX, rsY } = approachPorts(L, f.jitter, f.x0, f.y0);
   const from = Math.max(3, f.edge);
+  const midCtrl = L.stacked
+    ? {
+        cpx: (f.x0 + vanishX) * 0.5 + (f.jitter - 0.5) * L.w * 0.08,
+        cpy: f.y0 * 0.35 + vanishY * 0.55 - L.h * 0.06,
+      }
+    : {
+        cpx: f.x0 * 0.3 + vanishX * 0.5 + L.w * 0.08,
+        cpy: (L.barTop + L.barBot) * 0.5 + (f.jitter - 0.5) * L.h * 0.12,
+      };
 
   let x = f.x0;
   let y = f.y0;
@@ -325,10 +371,8 @@ function sampleFill(
   if (t < APPROACH_END) {
     phase = "approach";
     const u = travelEase(t / APPROACH_END);
-    const cpx = f.x0 * 0.3 + vanishX * 0.5 + L.w * 0.08;
-    const cpy = midY + (f.jitter - 0.5) * L.h * 0.12;
-    x = bez(u, f.x0, cpx, vanishX);
-    y = bez(u, f.y0, cpy, vanishY);
+    x = bez(u, f.x0, midCtrl.cpx, vanishX);
+    y = bez(u, f.y0, midCtrl.cpy, vanishY);
     sizeT = u * 0.2;
     if (u > 1 - FADE_OUT) {
       const fv = (u - (1 - FADE_OUT)) / FADE_OUT;
@@ -366,23 +410,37 @@ function sampleFill(
 }
 
 /**
- * Withdrawal: pool *right edge* (outside) → hourglass to list swatch.
+ * Withdrawal: pool edge (right on desktop, bottom when stacked) → list swatch.
  * No unslot / no cubes moving inside the bar.
  */
 function sampleOut(p: Particle, L: Layout, tRaw: number) {
   const t = ((tRaw % 1) + 1) % 1;
+  const midX = L.barLeft + L.barW * 0.5;
   const midY = (L.barTop + L.barBot) * 0.5;
-  const jY = (p.jitter - 0.5) * Math.max(1, L.barBot - L.barTop) * 0.12;
+  const barH = Math.max(1, L.barBot - L.barTop);
 
-  // Birth just outside the bar's right edge — never inside mosaic
-  const x0 = L.barLeft + L.barW + 6 + p.jitter * 8;
-  const y0 = midY + jY;
+  // Birth just outside the bar — never inside mosaic
+  let x0: number;
+  let y0: number;
+  let cpx: number;
+  let cpy: number;
+  if (L.stacked) {
+    const jX = (p.jitter - 0.5) * L.barW * 0.12;
+    x0 = midX + jX;
+    y0 = L.barBot + 6 + p.jitter * 8;
+    cpx = (x0 + p.anchorX) * 0.5 + (p.jitter - 0.5) * L.w * 0.1;
+    cpy = y0 * 0.4 + p.anchorY * 0.5 + L.h * 0.06;
+  } else {
+    const jY = (p.jitter - 0.5) * barH * 0.12;
+    x0 = L.barLeft + L.barW + 6 + p.jitter * 8;
+    y0 = midY + jY;
+    cpx = x0 * 0.35 + p.anchorX * 0.45 + L.w * 0.12;
+    cpy = midY + (p.jitter - 0.5) * L.h * 0.14;
+  }
   const x1 = p.anchorX;
   const y1 = p.anchorY;
 
   const u = travelEase(t);
-  const cpx = x0 * 0.35 + x1 * 0.45 + L.w * 0.12;
-  const cpy = midY + (p.jitter - 0.5) * L.h * 0.14;
   const x = bez(u, x0, cpx, x1);
   const y = bez(u, y0, cpy, y1);
 
@@ -480,6 +538,15 @@ function getReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function subscribeStacked(cb: () => void) {
+  const mq = window.matchMedia(STACKED_MQ);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function getStacked() {
+  return window.matchMedia(STACKED_MQ).matches;
+}
+
 function FlowPoolGrid({ snapshots }: Props) {
   const [windowKey, setWindowKey] = useState<FlowWindow>("24h");
   const [speedMult, setSpeedMult] = useState<SpeedMult>(10);
@@ -493,7 +560,7 @@ function FlowPoolGrid({ snapshots }: Props) {
     getReducedMotion,
     () => false,
   );
-
+  const stacked = useSyncExternalStore(subscribeStacked, getStacked, () => false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -505,6 +572,7 @@ function FlowPoolGrid({ snapshots }: Props) {
   const speedRef = useRef<SpeedMult>(10);
   const windowKeyRef = useRef<FlowWindow>("24h");
   const reducedRef = useRef(false);
+  const stackedRef = useRef(false);
   const particlesRef = useRef<Particle[]>([]);
   const packByIdRef = useRef<Map<string, PlacedBlock>>(new Map());
   /** Newest-first ids for the full pack (not just the paginated list page). */
@@ -602,10 +670,10 @@ function FlowPoolGrid({ snapshots }: Props) {
       flight: POOL_META[d.pool].particlePx,
       inputOrder: i,
     }));
-    const cols = packColsFor(inItems.length);
-    const seed = `${windowKey}|${[...filterPools].sort().join(",")}|${inItems.length}|c${cols}`;
+    const cols = packColsFor(inItems.length, stacked);
+    const seed = `${windowKey}|${[...filterPools].sort().join(",")}|${inItems.length}|c${cols}|s${stacked ? 1 : 0}`;
     return packItems(inItems, cols, seed);
-  }, [packDeposits, windowKey, filterPools]);
+  }, [packDeposits, windowKey, filterPools, stacked]);
 
   useEffect(() => {
     speedRef.current = speedMult;
@@ -616,6 +684,10 @@ function FlowPoolGrid({ snapshots }: Props) {
   useEffect(() => {
     reducedRef.current = reducedMotion;
   }, [reducedMotion]);
+  useEffect(() => {
+    stackedRef.current = stacked;
+    bakeDirtyRef.current = true;
+  }, [stacked]);
 
   // Pack plan → empty mosaic + intro time-lapse. After intro, scroll drives fill.
   useEffect(() => {
@@ -882,13 +954,31 @@ function FlowPoolGrid({ snapshots }: Props) {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
 
-      const inset = Math.max(12, Math.floor(h * 0.05));
-      const maxBarH = Math.max(48, h - inset * 2);
-      // Always keep a readable width — never collapse to a hairline on dense 7d
-      const barW = Math.max(MIN_BAR_W, Math.min(240, Math.floor(w * 0.28)));
-      const barH = maxBarH;
-      const barLeft = Math.floor((w - barW) / 2);
-      const barTop = inset;
+      const stackedLayout = stackedRef.current;
+      let barW: number;
+      let barH: number;
+      let barLeft: number;
+      let barTop: number;
+      if (stackedLayout) {
+        // Horizontal belt under deposits / above withdrawals (mobile stack)
+        const insetX = Math.max(10, Math.floor(w * 0.04));
+        const insetY = Math.max(8, Math.floor(h * 0.08));
+        barW = Math.max(MIN_BAR_W, w - insetX * 2);
+        barH = Math.max(
+          MIN_BAR_H_STACKED,
+          Math.min(Math.floor(h - insetY * 2), Math.floor(barW * 0.38), Math.floor(h * 0.62)),
+        );
+        barLeft = Math.floor((w - barW) / 2);
+        barTop = Math.floor((h - barH) / 2);
+      } else {
+        const inset = Math.max(12, Math.floor(h * 0.05));
+        const maxBarH = Math.max(48, h - inset * 2);
+        // Always keep a readable width — never collapse to a hairline on dense 7d
+        barW = Math.max(MIN_BAR_W, Math.min(240, Math.floor(w * 0.28)));
+        barH = maxBarH;
+        barLeft = Math.floor((w - barW) / 2);
+        barTop = inset;
+      }
       const barBot = barTop + barH;
       const rows = Math.max(1, packRowsRef.current);
       const cols = Math.max(GRID_COLS_MIN, packColsRef.current);
@@ -904,6 +994,7 @@ function FlowPoolGrid({ snapshots }: Props) {
         w,
         h,
         dpr,
+        stacked: stackedLayout,
         barLeft,
         barTop,
         barBot,
@@ -1132,8 +1223,13 @@ function FlowPoolGrid({ snapshots }: Props) {
             t: 0,
             speed: 1 / period,
             jitter: hash01(eventId + "fj"),
-            x0: L.w * 0.03 + h * 14,
-            y0: L.h * (0.08 + h * 0.84),
+            // Desktop: enter from left. Stacked: enter from above the belt.
+            x0: L.stacked
+              ? L.w * (0.08 + h * 0.84)
+              : L.w * 0.03 + h * 14,
+            y0: L.stacked
+              ? L.h * 0.04 + h * 10
+              : L.h * (0.08 + h * 0.84),
             col: pack.col,
             row: pack.row,
             cells: pack.side,
@@ -1226,12 +1322,20 @@ function FlowPoolGrid({ snapshots }: Props) {
       ctx.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
       ctx.clearRect(0, 0, L.w, L.h);
 
-      // Edge flecks
-      for (let i = 0; i < 12; i++) {
-        const y = L.h * (0.1 + (i / 11) * 0.8);
-        ctx.fillStyle = "rgba(238,247,255,0.04)";
-        ctx.fillRect(L.w * 0.02, y - 2, 4, 4);
-        ctx.fillRect(L.w * 0.98 - 4, y - 2, 4, 4);
+      // Edge flecks — left/right on desktop; top/bottom when stacked
+      ctx.fillStyle = "rgba(238,247,255,0.04)";
+      if (L.stacked) {
+        for (let i = 0; i < 12; i++) {
+          const x = L.w * (0.08 + (i / 11) * 0.84);
+          ctx.fillRect(x - 2, L.h * 0.06, 4, 4);
+          ctx.fillRect(x - 2, L.h * 0.94 - 4, 4, 4);
+        }
+      } else {
+        for (let i = 0; i < 12; i++) {
+          const y = L.h * (0.1 + (i / 11) * 0.8);
+          ctx.fillRect(L.w * 0.02, y - 2, 4, 4);
+          ctx.fillRect(L.w * 0.98 - 4, y - 2, 4, 4);
+        }
       }
 
       const gridH = L.barBot - L.barTop;
@@ -1298,13 +1402,15 @@ function FlowPoolGrid({ snapshots }: Props) {
         0.36 * (1 - inLandedRef.current.size / Math.max(1, packByIdRef.current.size)),
       );
       ctx.fillStyle = `rgba(238,247,255,${labelA})`;
-      ctx.font = "600 10px ui-monospace, Menlo, monospace";
+      ctx.font = L.stacked
+        ? "600 11px ui-monospace, Menlo, monospace"
+        : "600 10px ui-monospace, Menlo, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.save();
       ctx.translate(L.barLeft + L.barW / 2, (L.barTop + L.barBot) / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText("P O O L", 0, 0);
+      if (!L.stacked) ctx.rotate(-Math.PI / 2);
+      ctx.fillText(L.stacked ? "POOL" : "P O O L", 0, 0);
       ctx.restore();
     };
 
