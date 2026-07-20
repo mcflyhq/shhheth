@@ -529,6 +529,21 @@ function isVisibleInList(el: HTMLElement, listRect: DOMRect): boolean {
   );
 }
 
+/** Vertical lists use scrollTop; stacked mobile strips use scrollLeft. */
+function listScrollState(list: HTMLElement): {
+  horizontal: boolean;
+  pos: number;
+  max: number;
+  atStart: boolean;
+} {
+  const hMax = list.scrollWidth - list.clientWidth;
+  const vMax = list.scrollHeight - list.clientHeight;
+  const horizontal = hMax > 2 && hMax >= vMax;
+  const pos = horizontal ? list.scrollLeft : list.scrollTop;
+  const max = horizontal ? Math.max(0, hMax) : Math.max(0, vMax);
+  return { horizontal, pos, max, atStart: pos <= 2 };
+}
+
 function subscribeReducedMotion(cb: () => void) {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
   mq.addEventListener("change", cb);
@@ -1038,10 +1053,11 @@ function FlowPoolGrid({ snapshots }: Props) {
 
       /**
        * Desired mosaic uses the **full pack order** (newest-first), not the
-       * paginated list page — so intro / top-of-list can fill every cell.
+       * paginated list page — so intro / start-of-list can fill every cell.
        *
-       *  - Intro or scrollTop≈0: minIdx=0 → entire pack
-       *  - Scrolled: minIdx = pack index of topmost visible row → drop newer
+       *  - Intro or scroll at start: minIdx=0 → entire pack
+       *  - Scrolled: minIdx = pack index of first visible row → drop newer
+       * Horizontal mobile strips use scrollLeft; desktop columns use scrollTop.
        */
       const computeDesiredLanded = (): Set<string> => {
         const order = packOrderRef.current; // newest first, full pack
@@ -1057,13 +1073,13 @@ function FlowPoolGrid({ snapshots }: Props) {
           const inList = inListRef.current;
           const list = depositsRef.current;
           if (inList && list.length > 0) {
-            const maxScroll = inList.scrollHeight - inList.clientHeight;
+            const sc = listScrollState(inList);
             const exploration =
-              maxScroll <= 1
+              sc.max <= 1
                 ? 0
-                : Math.min(1, Math.max(0, inList.scrollTop / maxScroll));
+                : Math.min(1, Math.max(0, sc.pos / sc.max));
 
-            // Prefer topmost visible deposit → its index in the full pack order
+            // First visible deposit (leftmost / topmost) → pack index
             const listRect = inList.getBoundingClientRect();
             let topVisId: string | null = null;
             for (let i = 0; i < list.length; i++) {
@@ -1079,8 +1095,8 @@ function FlowPoolGrid({ snapshots }: Props) {
             } else {
               minIdx = Math.floor(exploration * (n - 1));
             }
-            // Still at top of list → keep full pack (complete fill)
-            if (inList.scrollTop <= 2) minIdx = 0;
+            // Still at start of list → keep full pack (complete fill)
+            if (sc.atStart) minIdx = 0;
           }
         }
 
@@ -1094,30 +1110,31 @@ function FlowPoolGrid({ snapshots }: Props) {
 
       // —— Scroll velocity (deposit list) → fill/empty tempo ——
       // Sample every frame so fling inertia still drives the mosaic after
-      // the pointer stops.
+      // the pointer stops. Horizontal strips track scrollLeft.
       const sk = scrollKinRef.current;
       const inList = inListRef.current;
       const nowMs = performance.now();
       if (inList && userScrolledDepositsRef.current) {
-        const top = inList.scrollTop;
-        const dTop = top - sk.lastTop;
+        const sc = listScrollState(inList);
+        const pos = sc.pos;
+        const dPos = pos - sk.lastTop;
         if (sk.lastTs > 0) {
           const dSec = (nowMs - sk.lastTs) / 1000;
           if (dSec > 0.001 && dSec < 0.12) {
-            if (Math.abs(dTop) > 0.5) {
-              // EMA — snappy enough to track flings, not jittery
-              sk.vel = sk.vel * 0.72 + (dTop / dSec) * 0.28;
+            if (Math.abs(dPos) > 0.5) {
+              // EMA: snappy enough to track flings, not jittery
+              sk.vel = sk.vel * 0.72 + (dPos / dSec) * 0.28;
             } else {
               sk.vel *= 0.88; // decay when the list is still
             }
           }
         }
-        sk.lastTop = top;
+        sk.lastTop = pos;
         sk.lastTs = nowMs;
       } else if (!intro) {
         sk.vel *= 0.9;
       }
-      // |vel| in “rows/s” (≈28px row) → 0…1+ intensity
+      // |vel| in “rows/s” (≈28px row or chip step) → 0…1+ intensity
       const ROW_PX = 28;
       const scrollRowsPerSec = Math.abs(sk.vel) / ROW_PX;
       const scrollIntensity = Math.min(1.75, scrollRowsPerSec / 14);
@@ -1429,31 +1446,29 @@ function FlowPoolGrid({ snapshots }: Props) {
 
   const onListScroll = (e: UIEvent<HTMLUListElement>) => {
     const list = e.currentTarget;
-    // Re-anchor / refresh membership only — do NOT clear particles or reset t
+    // Re-anchor / refresh membership only; do NOT clear particles or reset t
     needSyncRef.current = true;
-    // Deposit column scroll ends intro; velocity sampled in the rAF loop
+    // Deposit list scroll ends intro; velocity sampled in the rAF loop
     if (list === inListRef.current || list.classList.contains("flow-list-in")) {
-      const top = list.scrollTop;
+      const sc = listScrollState(list);
       const sk = scrollKinRef.current;
       const now = performance.now();
       if (sk.lastTs > 0) {
         const dSec = (now - sk.lastTs) / 1000;
         if (dSec > 0.0005 && dSec < 0.15) {
-          sk.vel = sk.vel * 0.5 + ((top - sk.lastTop) / dSec) * 0.5;
+          sk.vel = sk.vel * 0.5 + ((sc.pos - sk.lastTop) / dSec) * 0.5;
         }
       }
-      sk.lastTop = top;
+      sk.lastTop = sc.pos;
       sk.lastTs = now;
-      if (top > 2 || list.scrollLeft > 2) {
+      if (!sc.atStart) {
         userScrolledDepositsRef.current = true;
         introActiveRef.current = false;
       }
     }
     if (!canLoadMore) return;
-    const horizontal = list.scrollWidth > list.clientWidth + 2;
-    const nearEnd = horizontal
-      ? list.scrollLeft + list.clientWidth > list.scrollWidth - 80
-      : list.scrollTop + list.clientHeight > list.scrollHeight - 80;
+    const sc = listScrollState(list);
+    const nearEnd = sc.max > 0 && sc.pos > sc.max - 80;
     if (nearEnd) loadMore();
   };
 
