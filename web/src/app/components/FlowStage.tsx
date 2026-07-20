@@ -113,15 +113,17 @@ export default function FlowStage({ snapshots }: Props) {
           </h2>
           <div className="methodology-body">
             <p>
-              This page is not the full quiet index. It shows Tornado Cash ETH
-              pools only: public deposits on one side, withdrawals on the other,
-              pool in the center. Moving cubes are atmosphere only. They never
-              pair a real deposit with a real withdrawal.
+              Tornado Cash ETH pools for a chosen window: deposits on one side,
+              withdrawals on the other, the pool in the middle. Cubes are
+              atmosphere. They do not pair a real deposit with a real
+              withdrawal.
             </p>
             <p>
-              Tap a size to filter. Scroll either list for more history. Relayer
-              fees are the window total above the pool, static for the selected
-              range. All protocols together live on the{" "}
+              Filter by pool size. Scroll either list for more history. Relayer
+              fees are the total for the selected window, shown above the pool.
+            </p>
+            <p>
+              The full multi-protocol counter lives on the{" "}
               <a href={SITE_URL} className="flow-inline-link">
                 quiet index
               </a>

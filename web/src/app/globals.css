@@ -1986,20 +1986,35 @@ a { color: inherit; text-decoration: none; }
     gap: 0.55rem;
   }
 
+  /* Featured numbers on one row (deposited · withdrawn · fees) */
   .flow-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.55rem 0.75rem;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.45rem 0.65rem;
     flex: none;
     width: 100%;
   }
 
-  .flow-stat-fee {
-    grid-column: 1 / -1;
-    width: 100%;
-    max-width: 100%;
+  .flow-stat {
+    flex: 1 1 0;
     min-width: 0;
-    flex: none;
+  }
+
+  .flow-stat-fee {
+    grid-column: auto;
+    width: auto;
+    max-width: none;
+    flex: 1 1 0;
+  }
+
+  .flow-stat-value {
+    font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+  }
+
+  .flow-stat-label {
+    font-size: 0.5rem;
   }
 
   .flow-fee-meter {
@@ -2331,10 +2346,6 @@ a { color: inherit; text-decoration: none; }
     min-height: 2.4rem;
   }
 
-  .flow-stat-value {
-    font-size: 1rem;
-  }
-
   .flow-fee-meter {
     max-width: 100%;
   }
@@ -2382,13 +2393,16 @@ a { color: inherit; text-decoration: none; }
   }
 }
 
-/* Very small phones */
+/* Very small phones — keep stats on one row, tighten type */
 @media (max-width: 380px) {
   .flow-stats {
-    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
-  .flow-stat-fee {
-    grid-column: auto;
+  .flow-stat-value {
+    font-size: 0.88rem;
+  }
+  .flow-stat-label {
+    font-size: 0.46rem;
   }
   .flow-canvas-wrap {
     min-height: 8.5rem;
