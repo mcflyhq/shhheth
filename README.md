@@ -1,50 +1,79 @@
 # shhheth
 
-Live counter of all ETH ever shielded in Ethereum privacy protocols.
+The quiet index for shielded ETH on Ethereum.
 
-This is a cumulative all-time deposit count, not TVL — withdrawals do not reduce it.
+Live at **[shhheth.com](https://shhheth.com)** · Tornado pool flow at **[flow.shhheth.com](https://flow.shhheth.com)**
 
-## Workspaces
+## What it is
 
-- `web/` — Next.js 16 dashboard (the odometer) + Tornado flow on `flow.shhheth.com`
-- `subgraph-aztec/` — Aztec Connect shielded ETH
-- `subgraph-tornado/` — Tornado Cash ETH pools (cumulative + per-event for Flow)
-- `subgraph-railgun/` — Railgun shielded ETH
-- `subgraph-0xbow/` — 0xbow Privacy Pools ETH
+A cumulative **all-time deposit** counter across privacy protocols. Withdrawals do not reduce the number. This is not TVL.
 
-One immutable subgraph deployment per protocol, so adding or redeploying one
-never re-indexes the others.
+| Surface | URL | Role |
+|---------|-----|------|
+| Quiet index | [shhheth.com](https://shhheth.com) | Multi-protocol total, breakdown, inflow history |
+| Tornado flow | [flow.shhheth.com](https://flow.shhheth.com) | Time-window deposits and withdrawals for Tornado ETH pools |
 
-## Flow (`flow.shhheth.com`)
+Flow visualizes public activity only. Cubes and motion are atmospheric. They do not pair a deposit with a withdrawal.
 
-Public only on the flow subdomain (not `shhheth.com/flow`). Pool-grid mosaic of
-Tornado Cash ETH deposits ↔ withdrawals over a time window (24h / 7d). Quiet
-ink by default; denomination color + dot texture on hover — same language as
-the home inflow chart.
+## Stack
 
-Uses `shhheth-tornado-flow/1.0.0` event entities (`TornadoDeposit`,
-`TornadoWithdrawal`) with a recent `startBlock` so 24h/7d windows index
-quickly. Full-history reindex is `shhhethgrok-tornado/0.2.0`. Home totals
-still read `shhhethgrok-tornado/0.1.0`.
+- **web/** — Next.js app (index + flow)
+- **subgraph-*/** — one subgraph package per protocol (immutable deploys)
 
-## Live subgraphs
+Data is indexed on Goldsky and read over GraphQL. Endpoint map: `web/src/lib/protocols.ts`. Flow events: `web/src/lib/flow-data.ts`.
 
-Each package builds the exact deployment its Goldsky endpoint serves (see
-`web/src/lib/protocols.ts`):
-
-| Protocol | Package | Goldsky deployment | Global entity |
-|----------|---------|--------------------|---------------|
-| Aztec Connect (sunset) | `subgraph-aztec/` | `shhhethgrok/0.1.0` | `Global` |
-| Tornado Cash | `subgraph-tornado/` | `shhhethgrok-tornado` | `TornadoGlobal` |
-| Railgun | `subgraph-railgun/` | `shhheth-railgun/2.0.0` | `RailgunGlobal` |
-| 0xbow Privacy Pools | `subgraph-0xbow/` | `shhheth-0xbow/1.0.0` | `BowGlobal` |
+| Protocol | Package | Notes |
+|----------|---------|--------|
+| Aztec Connect | `subgraph-aztec/` | Sunset |
+| Tornado Cash | `subgraph-tornado/` | Cumulative totals + flow event subgraph |
+| Railgun | `subgraph-railgun/` | Live |
+| 0xbow | `subgraph-0xbow/` | Live |
 
 ## Develop
 
+Requires Node 20+ and [pnpm](https://pnpm.io).
+
 ```bash
 pnpm install
-pnpm dev                       # web
-pnpm subgraph:codegen          # regenerate types for every subgraph package
-pnpm subgraph:build            # compile every subgraph to wasm
-pnpm subgraph:deploy:aztec     # deploy one protocol (also :tornado, :railgun, :0xbow)
+pnpm dev
 ```
+
+Web: [http://localhost:3000](http://localhost:3000)  
+Flow locally: [http://localhost:3000/flow](http://localhost:3000/flow)  
+(In production, flow is only public on `flow.shhheth.com`; the main site redirects `/flow` there.)
+
+```bash
+pnpm build                 # production build of web
+pnpm --filter web test     # unit tests
+pnpm subgraph:codegen      # all subgraph packages
+pnpm subgraph:build
+```
+
+Optional env (see `web/`):
+
+```bash
+# web/.env.local
+NEXT_PUBLIC_SITE_URL=https://shhheth.com
+NEXT_PUBLIC_FLOW_URL=https://flow.shhheth.com
+# TORNADO_FLOW_SUBGRAPH=...   # override default Goldsky flow endpoint
+```
+
+Deploy web with Vercel (or any Next host). Point `shhheth.com` and `flow.shhheth.com` at the same project; middleware routes the flow host.
+
+## Subgraphs
+
+Each protocol is a separate package so one redeploy never reindexes the others.
+
+```bash
+pnpm subgraph:deploy:tornado
+pnpm subgraph:deploy:tornado-flow   # event subgraph used by flow.shhheth.com
+pnpm subgraph:deploy:railgun
+pnpm subgraph:deploy:0xbow
+pnpm subgraph:deploy:aztec
+```
+
+You need Graph/Goldsky credentials for deploys. The public app only needs the existing endpoints.
+
+## License
+
+Private for now unless noted otherwise in the repository settings.
