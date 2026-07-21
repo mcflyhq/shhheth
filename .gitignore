@@ -9,3 +9,10 @@ node_modules/
 # subgraph build artifacts
 subgraph-*/build/
 subgraph-*/generated/
+
+# local share kit / session junk
+share-x/
+
+# markdown (local notes, plans, product drafts)
+*.md
+**/*.md
