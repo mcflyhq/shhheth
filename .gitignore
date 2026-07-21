@@ -13,6 +13,10 @@ subgraph-*/generated/
 # local share kit / session junk
 share-x/
 
-# markdown (local notes, plans, product drafts)
+# markdown (local notes, plans) — keep public entry points
 *.md
 **/*.md
+!README.md
+!**/README.md
+!LICENSE
+!**/LICENSE
